@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* React Datepicker Dark Gold Theme */
+
+.react-datepicker {
+  background-color: #111827;
+  border: 1px solid #C9A84C;
+  border-radius: 12px;
+  color: rgb(124, 121, 121);
+}
+
+.react-datepicker__header {
+  background-color: #1f2937;
+  border-bottom: 1px solid #C9A84C;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: #C9A84C;
+  font-weight: bold;
+}
+
+.react-datepicker__day {
+  color: #ddd;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #C9A84C !important;
+  color: black !important;
+  border-radius: 8px;
+}
+
+.react-datepicker__day:hover {
+  background-color: #374151;
+  border-radius: 8px;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: #C9A84C;
+}
+
+.future-day {
+  /* color: #E05252 !important; */
+  opacity: 0.6;
+  text-decoration: line-through;
+  pointer-events: none;
+}
+
+
+
+
+
+
+
+
+/* ── Keyframes (must live outside @layer) ─────── */
+@keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes spinRing { to{transform:rotate(360deg)} }
+@keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:.35} }
+@keyframes shimmer  { 0%{background-position:-200% center} 100%{background-position:200% center} }
+
+/* ── Base ──────────────────────────────────────── */
+@layer base {
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+  html { scroll-behavior:smooth }
+  body { font-family:"DM Sans",system-ui,sans-serif; background:#0E0C09; color:#F5F0E8; min-height:100vh; -webkit-font-smoothing:antialiased }
+  h1,h2,h3,h4,h5,h6 { font-family:"Playfair Display",Georgia,serif; line-height:1.2 }
+  a { color:inherit; text-decoration:none }
+  button,input,select,textarea { font-family:inherit }
+  ::-webkit-scrollbar { width:5px; height:5px }
+  ::-webkit-scrollbar-track { background:#181510 }
+  ::-webkit-scrollbar-thumb { background:#2A2620; border-radius:99px }
+  ::-webkit-scrollbar-thumb:hover { background:#9A7A38 }
+}
+
+/* ── Utilities ─────────────────────────────────── */
+@layer utilities {
+  .anim-up   { animation:fadeUp   .5s ease both }
+  .anim-in   { animation:fadeIn   .3s ease both }
+  .anim-spin { animation:spinRing .8s linear infinite }
+  .anim-pulse{ animation:pulseDot 2s  ease-in-out infinite }
+  .d1{animation-delay:.06s} .d2{animation-delay:.12s} .d3{animation-delay:.18s}
+  .d4{animation-delay:.24s} .d5{animation-delay:.30s}
+
+  /* Gold shimmer skeleton */
+  .skeleton {
+    background:linear-gradient(90deg,#211E17 25%,#2A2620 50%,#211E17 75%);
+    background-size:200% 100%; animation:shimmer 1.5s infinite
+  }
+
+  /* Gold gradient text */
+  .gold-text {
+    background:linear-gradient(135deg,#E8C97A,#C9A84C,#9A7A38);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text
+  }
+
+  /* Gold animated button background */
+  .gold-btn {
+    background:linear-gradient(135deg,#C9A84C,#E8C97A,#C9A84C);
+    background-size:200% 100%;
+    transition:background-position .3s,transform .15s,box-shadow .15s
+  }
+  .gold-btn:hover  { background-position:100% 0; transform:translateY(-1px) }
+  .gold-btn:active { transform:translateY(0) }
+  .gold-btn:disabled { opacity:.5; cursor:not-allowed; transform:none }
+}
+
+/* ────────────────────────────────────────────────
+   COMPONENTS — 100% raw CSS values.
+   No @apply bg-resort-* / text-cream / border-white-*
+   Those tokens only work in JSX className strings.
+   ──────────────────────────────────────────────── */
+@layer components {
+
+  /* Cards */
+  .card   { background:#181510; border:1px solid rgba(255,255,255,.06); border-radius:1rem }
+  .card-p { background:#181510; border:1px solid rgba(255,255,255,.06); border-radius:1rem; padding:1.5rem }
+
+  /* Form field */
+  .f-input {
+    width:100%; background:#0E0C09; border:1px solid rgba(255,255,255,.1);
+    border-radius:.75rem; padding:.7rem 1rem; color:#F5F0E8; font-size:.875rem;
+    outline:none; transition:border-color .2s,box-shadow .2s; appearance:none
+  }
+  .f-input::placeholder { color:#4A4438 }
+  .f-input:focus { border-color:rgba(201,168,76,.55); box-shadow:0 0 0 3px rgba(201,168,76,.09) }
+  .f-input:disabled { opacity:.5; cursor:not-allowed }
+  .f-input.with-icon { padding-left:2.6rem }
+
+  .f-label { display:block; font-size:.6875rem; font-weight:600; color:#8A7E6A; text-transform:uppercase; letter-spacing:.07em; margin-bottom:.35rem }
+  .f-req   { color:#C9A84C; margin-left:2px }
+
+  /* Sidebar link */
+  .nav-item {
+    display:flex; align-items:center; gap:.75rem; padding:.6rem .8rem;
+    border-radius:.75rem; font-size:.875rem; font-weight:500; color:#8A7E6A;
+    border:1px solid transparent; transition:background .15s,color .15s; cursor:pointer
+  }
+  .nav-item:hover { background:rgba(255,255,255,.05); color:#F5F0E8 }
+  .nav-item.active { background:rgba(201,168,76,.1); color:#C9A84C; border-color:rgba(201,168,76,.22); font-weight:600 }
+
+  /* Page header */
+  .page-hd { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:1.75rem; animation:fadeUp .45s ease both }
+  .page-title { font-family:"Playfair Display",Georgia,serif; font-size:1.25rem; font-weight:600; color:#F5F0E8 }
+  .page-sub   { color:#8A7E6A; font-size:.8125rem; margin-top:.25rem }
+
+  /* Tabs */
+  .tab-row { display:flex; gap:2px; border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:1.25rem }
+  .tab-btn {
+    padding:.6rem 1.2rem; font-size:.8125rem; font-weight:600; background:none; border:none;
+    border-bottom:2px solid transparent; color:#8A7E6A; cursor:pointer; transition:color .15s,border-color .15s; margin-bottom:-1px
+  }
+  .tab-btn:hover { color:#F5F0E8 }
+  .tab-btn.on    { color:#C9A84C; border-bottom-color:#C9A84C }
+
+  /* Filter chip */
+  .chip     { padding:.4rem .85rem; border-radius:.5rem; border:1px solid rgba(255,255,255,.09); background:transparent; color:#8A7E6A; font-size:.75rem; font-weight:600; cursor:pointer; transition:all .15s }
+  .chip:hover { color:#F5F0E8; background:rgba(255,255,255,.05) }
+  .chip.on    { background:rgba(201,168,76,.12); color:#C9A84C; border-color:rgba(201,168,76,.38) }
+
+  /* Toast */
+  .toast     { position:fixed; bottom:1.75rem; right:1.75rem; z-index:9999; display:flex; align-items:center; gap:.6rem; padding:.85rem 1.25rem; border-radius:.75rem; font-size:.8125rem; font-weight:600; box-shadow:0 8px 32px rgba(0,0,0,.4); animation:fadeUp .3s ease }
+  .toast-ok  { background:#071408; border:1px solid rgba(82,192,122,.3); color:#52C07A }
+  .toast-err { background:#140707; border:1px solid rgba(224,82,82,.3);  color:#E05252 }
+
+  /* Stat card */
+  .stat-card { background:#181510; border:1px solid rgba(255,255,255,.06); border-radius:1rem; padding:1.25rem 1.5rem; position:relative; overflow:hidden }
+  .stat-bar  { position:absolute; top:0; left:0; right:0; height:2px }
+
+  /* Badge */
+  .badge     { display:inline-flex; align-items:center; gap:5px; padding:.28rem .75rem; border-radius:99px; border:1px solid; font-size:.6875rem; font-weight:600; letter-spacing:.025em; white-space:nowrap }
+  .bdot      { width:6px; height:6px; border-radius:50%; flex-shrink:0; animation:pulseDot 2s ease-in-out infinite }
+  .b-avail   { background:rgba(82,192,122,.1);  color:#52C07A;  border-color:rgba(82,192,122,.25)  }
+  .b-occ     { background:rgba(224,82,82,.1);   color:#E05252;  border-color:rgba(224,82,82,.25)   }
+  .b-clean   { background:rgba(224,168,82,.1);  color:#E0A852;  border-color:rgba(224,168,82,.25)  }
+  .b-maint   { background:rgba(82,148,224,.1);  color:#5294E0;  border-color:rgba(82,148,224,.25)  }
+  .b-confirm { background:rgba(82,192,122,.1);  color:#52C07A;  border-color:rgba(82,192,122,.25)  }
+  .b-pend    { background:rgba(224,168,82,.1);  color:#E0A852;  border-color:rgba(224,168,82,.25)  }
+  .b-cancel  { background:rgba(224,82,82,.1);   color:#E05252;  border-color:rgba(224,82,82,.25)   }
+  .b-cin     { background:rgba(82,148,224,.1);  color:#5294E0;  border-color:rgba(82,148,224,.25)  }
+  .b-cout    { background:rgba(201,168,76,.1);  color:#C9A84C;  border-color:rgba(201,168,76,.25)  }
+  .b-active  { background:rgba(82,192,122,.1);  color:#52C07A;  border-color:rgba(82,192,122,.25)  }
+  .b-inactive{ background:rgba(100,100,100,.1); color:#8A7E6A;  border-color:rgba(100,100,100,.2)  }
+  .b-gold    { background:rgba(201,168,76,.1);  color:#C9A84C;  border-color:rgba(201,168,76,.25)  }
+}
