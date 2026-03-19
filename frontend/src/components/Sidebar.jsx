@@ -1,12 +1,12 @@
 // src/components/Sidebar.jsx
-import React from "react"
-import { NavLink, useNavigate } from "react-router-dom"
+// Fully responsive — fixed sidebar on desktop, slide-in drawer on mobile
+import React, { useState, useEffect } from "react"
+import { NavLink, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import CrownIcon from "../components/ui/Crown"
 
 /* ══════════════════════════════════════
-   SVG ICONS — stroke only, colourless
-   (inherit colour from parent)
+   SVG ICONS
 ══════════════════════════════════════ */
 const IC = {
   Dashboard: () => (
@@ -81,9 +81,19 @@ const IC = {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4"/>
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      <path d="M15 5.5a3 3 0 0 1 0 5"/>
-      <circle cx="19" cy="15" r="3"/>
-      <path d="M19 12v1M19 18v1M16.27 13.5l.87.5M21.73 16.5l-.87.5M16.27 16.5l.87-.5M21.73 13.5l-.87-.5"/>
+    </svg>
+  ),
+  Menu: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  ),
+  Close: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   ),
 }
@@ -132,17 +142,12 @@ const STAFF_NAV = [
   ]},
 ]
 
-export default function Sidebar({ role="admin" }) {
-  const { logout, user } = useAuth()
-  const nav = role==="admin" ? ADMIN_NAV : STAFF_NAV
-  const navigate = useNavigate()
-
-  const handleLogout = () => { logout(); navigate("/login") }
-
+/* ══════════════════════════════════════
+   SIDEBAR INNER CONTENT
+══════════════════════════════════════ */
+function SidebarContent({ role, nav, user, onNavigate, onLogout }) {
   return (
-    <aside className="w-64 flex-shrink-0 flex flex-col fixed left-0 top-0 bottom-0 z-50 overflow-y-auto"
-      style={{ background:"#100E0B", borderRight:"1px solid rgba(201,168,76,.1)" }}>
-
+    <>
       {/* Logo */}
       <div className="px-5 pt-6 pb-5" style={{ borderBottom:"1px solid rgba(255,255,255,.05)" }}>
         <div className="flex items-center gap-3">
@@ -157,7 +162,7 @@ export default function Sidebar({ role="admin" }) {
       </div>
 
       {/* Nav sections */}
-      <nav className="flex-1 px-3 py-3">
+      <nav className="flex-1 px-3 py-3 overflow-y-auto">
         {nav.map(sec => (
           <div key={sec.section} className="mb-1">
             <p className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color:"#3e352a" }}>
@@ -165,6 +170,7 @@ export default function Sidebar({ role="admin" }) {
             </p>
             {sec.items.map(({ to, Icon, label }) => (
               <NavLink key={to} to={to}
+                onClick={onNavigate}
                 className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
                 <span className="w-5 flex items-center justify-center flex-shrink-0">
                   <Icon/>
@@ -187,7 +193,7 @@ export default function Sidebar({ role="admin" }) {
             <p className="text-sm font-semibold text-cream truncate">{user?.staff_name || user?.name || "Admin"}</p>
             <p className="text-[10px] text-resort-dim capitalize">{user?.designation || user?.role || role}</p>
           </div>
-          <button onClick={handleLogout} title="Logout"
+          <button onClick={onLogout} title="Logout"
             style={{ background:"none", border:"none", cursor:"pointer", color:"#6B6054", padding:"4px", borderRadius:6, display:"flex", alignItems:"center" }}
             onMouseEnter={e => e.currentTarget.style.color="#E05252"}
             onMouseLeave={e => e.currentTarget.style.color="#6B6054"}>
@@ -199,6 +205,107 @@ export default function Sidebar({ role="admin" }) {
           </button>
         </div>
       </div>
-    </aside>
+    </>
+  )
+}
+
+/* ══════════════════════════════════════
+   EXPORTED SIDEBAR
+   - Desktop: fixed left panel (w-64)
+   - Mobile: hamburger button + slide-in drawer + backdrop
+══════════════════════════════════════ */
+export default function Sidebar({ role="admin" }) {
+  const { logout, user } = useAuth()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  const nav = role === "admin" ? ADMIN_NAV : STAFF_NAV
+
+  // Close drawer on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  // Prevent body scroll when drawer open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : ""
+    return () => { document.body.style.overflow = "" }
+  }, [mobileOpen])
+
+  const handleLogout = () => { logout(); navigate("/login") }
+
+  const sidebarStyle = {
+    background: "#100E0B",
+    borderRight: "1px solid rgba(201,168,76,.1)",
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+  }
+
+  return (
+    <>
+      {/* ── Desktop sidebar (lg+) ── */}
+      <aside
+        className="hidden lg:flex w-64 flex-shrink-0 flex-col fixed left-0 top-0 bottom-0 z-50 overflow-y-auto"
+        style={sidebarStyle}
+      >
+        <SidebarContent
+          role={role} nav={nav} user={user}
+          onNavigate={() => {}}
+          onLogout={handleLogout}
+        />
+      </aside>
+
+      {/* ── Mobile hamburger button ── */}
+      <button
+        className="lg:hidden fixed top-4 left-4 z-[60] flex items-center justify-center w-10 h-10 rounded-xl"
+        style={{
+          background: "rgba(16,14,11,0.9)",
+          border: "1px solid rgba(201,168,76,.25)",
+          color: "#C9A84C",
+          backdropFilter: "blur(8px)",
+        }}
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open menu"
+      >
+        <IC.Menu />
+      </button>
+
+      {/* ── Mobile backdrop ── */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-[55]"
+          style={{ background: "rgba(0,0,0,.65)", backdropFilter: "blur(4px)" }}
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile drawer ── */}
+      <aside
+        className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col w-72 overflow-y-auto"
+        style={{
+          ...sidebarStyle,
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: mobileOpen ? "4px 0 40px rgba(0,0,0,.6)" : "none",
+        }}
+      >
+        {/* Close button inside drawer */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg"
+          style={{ background: "rgba(255,255,255,.06)", color: "#6B6054", border: "none", cursor: "pointer" }}
+          onMouseEnter={e => e.currentTarget.style.color = "#E05252"}
+          onMouseLeave={e => e.currentTarget.style.color = "#6B6054"}
+        >
+          <IC.Close />
+        </button>
+
+        <SidebarContent
+          role={role} nav={nav} user={user}
+          onNavigate={() => setMobileOpen(false)}
+          onLogout={handleLogout}
+        />
+      </aside>
+    </>
   )
 }

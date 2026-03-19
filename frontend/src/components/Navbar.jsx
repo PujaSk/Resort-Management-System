@@ -1,9 +1,9 @@
 // src/components/Navbar.jsx
+// Responsive — leaves space for hamburger button on mobile
 import React from "react"
 import { useLocation } from "react-router-dom"
 
 const LABELS = {
-  // Admin
   "/admin/dashboard":       "Dashboard",
   "/admin/manage-rooms":    "Manage Rooms",
   "/admin/room-settings":   "Room Settings",
@@ -16,7 +16,6 @@ const LABELS = {
   "/admin/manage-services": "Manage Services",
   "/admin/transaction":     "Transaction",
   "/admin/reports":         "Reports",
-  // Staff
   "/staff/dashboard":       "Dashboard",
   "/staff/housekeeping":    "House Keeping",
   "/staff/room-booking":    "Room Booking",
@@ -27,7 +26,6 @@ const LABELS = {
 export default function Navbar() {
   const { pathname } = useLocation()
 
-  // Handle dynamic routes like /admin/bookings/:id
   let label = LABELS[pathname]
   if (!label && pathname.includes("/bookings/")) label = "Booking Detail"
   if (!label) label = "Resort Management"
@@ -37,18 +35,43 @@ export default function Navbar() {
   })
 
   return (
-    <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-40"
-      style={{ background:"rgba(14,12,9,.85)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-      <div>
-        <h2 className="font-display text-lg font-semibold text-cream">{label}</h2>
-      </div>
-      <div className="flex items-center gap-4">
-        <span className="text-[11px] text-resort-muted px-4 py-1.5 rounded-lg"
-          style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.06)" }}>
-          {today}
-        </span>
-        <span className="w-2 h-2 rounded-full anim-pulse"
-          style={{ background:"#52C07A", boxShadow:"0 0 8px rgba(82,192,122,.6)" }} title="System Online"/>
+    <header
+      className="h-16 flex items-center justify-between sticky top-0 z-40"
+      style={{
+        background: "rgba(14,12,9,.85)",
+        backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(255,255,255,.05)",
+        /* On mobile, push title right to avoid overlap with hamburger */
+        paddingLeft: "calc(3rem + env(safe-area-inset-left, 0px))",
+        paddingRight: "1.5rem",
+      }}
+    >
+      {/* On lg+ use normal padding */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .navbar-inner { padding-left: 2rem !important; }
+        }
+      `}</style>
+
+      <div className="navbar-inner flex items-center justify-between w-full"
+        style={{ paddingLeft: "inherit", paddingRight: "inherit" }}>
+        <div>
+          <h2 className="font-display text-base sm:text-lg font-semibold text-cream">{label}</h2>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Hide date on very small screens */}
+          <span
+            className="hidden sm:block text-[11px] text-resort-muted px-3 sm:px-4 py-1.5 rounded-lg"
+            style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.06)" }}
+          >
+            {today}
+          </span>
+          <span
+            className="w-2 h-2 rounded-full anim-pulse"
+            style={{ background:"#52C07A", boxShadow:"0 0 8px rgba(82,192,122,.6)" }}
+            title="System Online"
+          />
+        </div>
       </div>
     </header>
   )
