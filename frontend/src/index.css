@@ -3,6 +3,118 @@
 @tailwind utilities;
 
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE ADDITIONS — add these to your global CSS file
+   (src/index.css or src/App.css)
+══════════════════════════════════════════════════════════════ */
+
+/* ── xs breakpoint (≥480px) — add to tailwind.config.js screens ── */
+/* In tailwind.config.js add: screens: { xs: '480px', ...defaultTheme.screens } */
+
+/* ── Responsive table: horizontal scroll on small screens ── */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Responsive stat/summary cards grid ──
+   Use className="stats-grid" on the wrapper div
+   instead of a hardcoded 4-column grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 480px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+}
+
+/* ── 2-column form grid → 1 column on mobile ── */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── 3-column grid → 1 on mobile, 2 on md ── */
+.grid-3-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 640px) {
+  .grid-3-responsive { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .grid-3-responsive { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Page header: stack title + actions on mobile ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Card padding adjusts on mobile ── */
+.card {
+  padding: 1rem;
+}
+@media (min-width: 640px) {
+  .card { padding: 1.25rem; }
+}
+@media (min-width: 1024px) {
+  .card { padding: 1.5rem; }
+}
+
+/* ── Make modal take full width on small phones ── */
+@media (max-width: 480px) {
+  .modal-inner {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+  }
+}
+
+/* ── Hide scrollbar on mobile nav ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Fluid typography helpers ── */
+.text-fluid-sm  { font-size: clamp(11px, 1.5vw, 13px); }
+.text-fluid-base{ font-size: clamp(13px, 2vw, 15px); }
+.text-fluid-lg  { font-size: clamp(16px, 2.5vw, 20px); }
+.text-fluid-xl  { font-size: clamp(20px, 3vw, 28px); }
+.text-fluid-2xl { font-size: clamp(24px, 4vw, 36px); }
+
+
+
+
+
+
+
+
+
+
 /* React Datepicker Dark Gold Theme */
 
 .react-datepicker {

@@ -1,140 +1,220 @@
-// src/layouts/Footer.jsx
+// src/components/Footer.jsx
+// Responsive — single-column on mobile, 4-column grid on desktop
 import React from "react"
 import { Link } from "react-router-dom"
 
-const FOOTER_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
-`
+const C = { gold:"#C9A84C", cream:"#F5ECD7", dim:"#6B6054", muted:"#8A7E6A" }
 
-function CrownIcon({ size = 40 }) {
-  return (
-    <svg width={size} height={size * 0.7} viewBox="0 0 32 22" fill="none">
-      <path d="M2 20L6 9L12 15L16 2L20 15L26 9L30 20H2Z" fill="none" stroke="#c9a96e" strokeWidth="1.3" strokeLinejoin="round"/>
-      <circle cx="16" cy="2"  r="1.8" fill="#c9a96e"/>
-      <circle cx="6"  cy="9"  r="1.4" fill="#c9a96e"/>
-      <circle cx="26" cy="9"  r="1.4" fill="#c9a96e"/>
-    </svg>
-  )
+const SVG = ({ children, size=18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    {children}
+  </svg>
+)
+
+const Icons = {
+  Phone:    ()=><SVG><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.4 16z"/></SVG>,
+  Mail:     ()=><SVG><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></SVG>,
+  MapPin:   ()=><SVG><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></SVG>,
+  Clock:    ()=><SVG><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></SVG>,
+  Crown:    ()=><SVG size={22}><path d="M2 20h20"/><path d="M5 20 3 8l4 3 5-7 5 7 4-3-2 12"/><circle cx="12" cy="4" r="1" fill="currentColor"/></SVG>,
+  ChevronR: ()=><SVG size={14}><polyline points="9 18 15 12 9 6"/></SVG>,
+  Facebook: ()=><SVG size={16}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></SVG>,
+  Instagram:()=><SVG size={16}><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></SVG>,
+  Twitter:  ()=><SVG size={16}><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></SVG>,
 }
 
+const NAV_COLS = [
+  {
+    title: "Explore",
+    links: [
+      { to: "/",            label: "Home" },
+      { to: "/rooms",       label: "Our Rooms" },
+      { to: "/facilities",  label: "Facilities" },
+    ],
+  },
+  {
+    title: "Guest Services",
+    links: [
+      { to: "/bookings",   label: "My Bookings" },
+      { to: "/profile",    label: "My Profile" },
+      { to: "/login",      label: "Sign In" },
+      { to: "/register",   label: "Create Account" },
+    ],
+  },
+]
+
+const CONTACT = [
+  { Icon: Icons.MapPin, text: "Palace Road, Udaipur, Rajasthan 313001" },
+  { Icon: Icons.Phone,  text: "+91 94141 00000" },
+  { Icon: Icons.Mail,   text: "reservations@royalpalace.com" },
+  { Icon: Icons.Clock,  text: "Reception open 24 × 7" },
+]
+
+const SOCIALS = [
+  { Icon: Icons.Facebook,  href: "#", label: "Facebook" },
+  { Icon: Icons.Instagram, href: "#", label: "Instagram" },
+  { Icon: Icons.Twitter,   href: "#", label: "Twitter" },
+]
+
 export default function Footer() {
+  const year = new Date().getFullYear()
+
   return (
-    <>
-      <style>{FOOTER_CSS}</style>
-      <footer style={{ padding:"60px 40px 40px", borderTop:"1px solid rgba(201,169,110,.1)", background:"#080604" }}>
-        <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:"48px", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"48px" }}>
+    <footer style={{ background:"#0A0804", borderTop:"1px solid rgba(201,168,76,.12)", marginTop:"auto" }}>
 
-            {/* Brand + Social */}
-            <div style={{ maxWidth:"280px" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"16px" }}>
-                <CrownIcon size={26}/>
-                <span style={{ fontFamily:"'Playfair Display',serif", fontSize:"15px", color:"#c9a96e", fontWeight:700 }}>Royal Palace Resort</span>
-              </div>
-              <p style={{ fontFamily:"sans-serif", fontSize:"13.5px", color:"rgba(220,200,165,.81)", lineHeight:1.8, marginBottom:"20px" }}>
-                Where timeless elegance meets the grandeur of nature. An experience beyond compare.
-              </p>
-              <div style={{ display:"flex", gap:"12px" }}>
-                {[
-                  { label:"Facebook",  href:"https://facebook.com",  icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> },
-                  { label:"Instagram", href:"https://instagram.com", icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> },
-                  { label:"Twitter/X", href:"https://twitter.com",   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
-                  { label:"YouTube",   href:"https://youtube.com",   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#080604"/></svg> },
-                ].map(({ label, href, icon }) => (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                    style={{ width:"36px", height:"36px", borderRadius:"50%", border:"1px solid rgba(201,169,110,.25)", background:"rgba(201,169,110,.06)", color:"rgba(201,169,110,.7)", display:"flex", alignItems:"center", justifyContent:"center", textDecoration:"none", transition:"all .25s" }}
-                    onMouseEnter={e => { e.currentTarget.style.background="rgba(201,169,110,.18)"; e.currentTarget.style.borderColor="rgba(201,169,110,.6)"; e.currentTarget.style.color="#c9a96e" }}
-                    onMouseLeave={e => { e.currentTarget.style.background="rgba(201,169,110,.06)"; e.currentTarget.style.borderColor="rgba(201,169,110,.25)"; e.currentTarget.style.color="rgba(201,169,110,.7)" }}
-                  >
-                    {icon}
-                  </a>
-                ))}
-              </div>
+      {/* Top CTA strip */}
+      <div style={{
+        background:"linear-gradient(135deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.04) 100%)",
+        borderBottom:"1px solid rgba(201,168,76,.1)",
+        padding:"28px 20px",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        flexWrap:"wrap", gap:16,
+      }}>
+        <div>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3vw,26px)", fontWeight:700, color:C.cream, margin:0 }}>
+            Experience Unmatched Luxury
+          </h2>
+          <p style={{ color:C.muted, marginTop:6, fontSize:13 }}>
+            Book your stay at Royal Palace Resort and create memories that last a lifetime.
+          </p>
+        </div>
+        <Link to="/rooms" style={{
+          display:"inline-flex", alignItems:"center", gap:8,
+          padding:"12px 24px", borderRadius:8, textDecoration:"none",
+          background:"linear-gradient(135deg,#C9A84C,#a8873d)",
+          color:"#0A0804", fontWeight:700, fontSize:13, letterSpacing:"0.04em",
+          boxShadow:"0 4px 20px rgba(201,168,76,.3)", flexShrink:0,
+        }}>
+          Book a Room <Icons.ChevronR />
+        </Link>
+      </div>
+
+      {/* Main grid — stacks to 1 col on mobile, 2 col on md, 4 col on lg */}
+      <div style={{
+        padding:"40px 20px 32px",
+        display:"grid",
+        gridTemplateColumns:"1fr",
+        gap:32,
+      }}
+        className="footer-grid"
+      >
+        <style>{`
+          @media (min-width: 640px) {
+            .footer-grid { grid-template-columns: 1fr 1fr !important; padding: 44px 32px 36px !important; }
+          }
+          @media (min-width: 1024px) {
+            .footer-grid { grid-template-columns: 2fr 1fr 1fr 1.4fr !important; padding: 52px 40px 40px !important; }
+          }
+        `}</style>
+
+        {/* Brand col */}
+        <div>
+          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+            <div style={{
+              width:38, height:38, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center",
+              background:"linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08))",
+              border:"1px solid rgba(201,168,76,.3)", color:C.gold, flexShrink:0,
+            }}>
+              <Icons.Crown />
             </div>
-
-            {/* Nav Links */}
-            <div style={{ display:"flex", gap:"60px", flexWrap:"wrap" }}>
-              {[
-                ["Explore", [
-                  ["Rooms & Suites", "/rooms"],
-                  ["Banquet Halls",  "/banquet"],
-                  ["Facilities",     "/facilities"],
-                ]],
-                ["Stay", [
-                  ["Book Now",    "/rooms"],
-                  ["My Bookings", "/bookings"],
-                ]],
-              ].map(([title, links]) => (
-                <div key={title}>
-                  <div style={{ fontSize:"11px", letterSpacing:"0.35em", color:"#c9a96e", textTransform:"uppercase", marginBottom:"18px", fontFamily:"'Cormorant Garamond',serif" }}>
-                    {title}
-                  </div>
-                  {links.map(([label, href]) => (
-                    <div key={href} style={{ marginBottom:"10px" }}>
-                      <Link to={href} style={{ fontFamily:"sans-serif", fontSize:"14px", color:"rgba(220,200,165,.4)", textDecoration:"none", transition:"color .2s" }}
-                        onMouseEnter={e => e.currentTarget.style.color="rgba(201,169,110,.85)"}
-                        onMouseLeave={e => e.currentTarget.style.color="rgba(220,200,165,.4)"}
-                      >
-                        {label}
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              ))}
-
-              {/* Contact */}
-              <div>
-                <div style={{ fontSize:"11px", letterSpacing:"0.35em", color:"#c9a96e", textTransform:"uppercase", marginBottom:"18px", fontFamily:"'Cormorant Garamond',serif" }}>
-                  Contact Us
-                </div>
-                <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
-                  <a href="mailto:royalpalace.care1@gmail.com"
-                    style={{ display:"flex", alignItems:"flex-start", gap:"10px", textDecoration:"none" }}
-                    onMouseEnter={e => e.currentTarget.querySelector("span").style.color="rgba(201,169,110,.85)"}
-                    onMouseLeave={e => e.currentTarget.querySelector("span").style.color="rgba(220,200,165,.4)"}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,110,.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:"2px" }}>
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                      <polyline points="22,6 12,13 2,6"/>
-                    </svg>
-                    <span style={{ fontFamily:"sans-serif", fontSize:"13.5px", color:"rgba(220,200,165,.4)", transition:"color .2s", lineHeight:1.5 }}>
-                      royalpalace.care1@gmail.com
-                    </span>
-                  </a>
-
-                  <div style={{ display:"flex", alignItems:"flex-start", gap:"10px" }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,110,.6)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:"2px" }}>
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <span style={{ fontFamily:"sans-serif", fontSize:"13.5px", color:"rgba(220,200,165,.4)", lineHeight:1.6, maxWidth:"200px" }}>
-                      Royal Palace Resort,<br/>
-                      Civil Lines, Jaipur,<br/>
-                      Rajasthan – 302006, India
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <p style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:C.gold, margin:0, lineHeight:1.2 }}>
+                Royal Palace Resort
+              </p>
+              <p style={{ fontSize:10, color:C.dim, letterSpacing:"0.14em", textTransform:"uppercase", margin:0 }}>
+                Est. 1987 · Luxury Hospitality
+              </p>
             </div>
           </div>
-
-          {/* Bottom Bar */}
-          <div style={{ paddingTop:"24px", borderTop:"1px solid rgba(255, 255, 255, 0.2)", display:"flex", flexWrap:"wrap", gap:"12px", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:"13px", color:"#c9a96e", letterSpacing:"0.08em", fontFamily:"'Cormorant Garamond',serif" }}>
-              © {new Date().getFullYear()} Royal Palace Resort. All rights reserved.
-            </span>
-            <div style={{ display:"flex", gap:"20px" }}>
-              {[["Privacy Policy", "/privacy"], ["Terms of Service", "/terms"]].map(([label, href]) => (
-                <Link key={href} to={href}
-                  style={{ fontSize:"12px", color:"rgba(255, 255, 255, 0.55)", textDecoration:"none", fontFamily:"'Cormorant Garamond',serif", letterSpacing:"0.05em", transition:"color .2s" }}
-                  onMouseEnter={e => e.currentTarget.style.color="rgba(201,169,110,.6)"}
-                  onMouseLeave={e => e.currentTarget.style.color="rgba(255,255,255,.2)"}
-                >{label}</Link>
-              ))}
-            </div>
+          <p style={{ color:C.muted, fontSize:13, lineHeight:1.85, maxWidth:300 }}>
+            Nestled in the heart of Rajasthan, Royal Palace Resort blends timeless
+            heritage with modern luxury — offering guests an unrivalled sanctuary of
+            comfort, culture, and elegance.
+          </p>
+          <div style={{ display:"flex", gap:10, marginTop:20 }}>
+            {SOCIALS.map(({ Icon, href, label }) => (
+              <a key={label} href={href} aria-label={label} style={{
+                width:34, height:34, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
+                background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.15)",
+                color:C.dim, textDecoration:"none", transition:"all .2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background="rgba(201,168,76,.18)"; e.currentTarget.style.color=C.gold }}
+              onMouseLeave={e => { e.currentTarget.style.background="rgba(201,168,76,.08)"; e.currentTarget.style.color=C.dim }}>
+                <Icon />
+              </a>
+            ))}
           </div>
         </div>
-      </footer>
-    </>
+
+        {/* Nav cols */}
+        {NAV_COLS.map(col => (
+          <div key={col.title}>
+            <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase",
+              color:C.gold, marginBottom:16, marginTop:2 }}>
+              {col.title}
+            </p>
+            <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:10 }}>
+              {col.links.map(({ to, label }) => (
+                <li key={label}>
+                  <Link to={to} style={{ color:C.muted, textDecoration:"none", fontSize:13,
+                    display:"inline-flex", alignItems:"center", gap:5, transition:"color .2s" }}
+                    onMouseEnter={e => e.currentTarget.style.color = C.cream}
+                    onMouseLeave={e => e.currentTarget.style.color = C.muted}>
+                    <span style={{ opacity:.4 }}><Icons.ChevronR /></span>
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        {/* Contact col */}
+        <div>
+          <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase",
+            color:C.gold, marginBottom:16, marginTop:2 }}>
+            Contact Us
+          </p>
+          <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:12 }}>
+            {CONTACT.map(({ Icon, text }) => (
+              <li key={text} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                <span style={{ color:C.gold, flexShrink:0, marginTop:2 }}><Icon /></span>
+                <span style={{ color:C.muted, fontSize:12.5, lineHeight:1.6 }}>{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div style={{ borderTop:"1px solid rgba(255,255,255,.05)", margin:"0 20px" }} className="footer-divider" />
+      <style>{`
+        @media(min-width:1024px){ .footer-divider{ margin: 0 40px !important; } }
+      `}</style>
+      <div style={{
+        padding:"16px 20px",
+        display:"flex", alignItems:"center",
+        justifyContent:"space-between", flexWrap:"wrap", gap:10,
+      }}
+        className="footer-bottom"
+      >
+        <style>{`
+          @media(min-width:1024px){ .footer-bottom{ padding: 18px 40px !important; } }
+        `}</style>
+        <p style={{ color:C.dim, fontSize:12, margin:0 }}>
+          © {year} Royal Palace Resort. All rights reserved.
+        </p>
+        <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
+          {["Privacy Policy","Terms of Service","Cookie Policy"].map(t => (
+            <a key={t} href="#" style={{ color:C.dim, fontSize:12, textDecoration:"none", transition:"color .2s" }}
+              onMouseEnter={e => e.currentTarget.style.color = C.muted}
+              onMouseLeave={e => e.currentTarget.style.color = C.dim}>
+              {t}
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
   )
 }
