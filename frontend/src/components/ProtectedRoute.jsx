@@ -25,28 +25,39 @@ export default function ProtectedRoute({ children, role }) {
     return <Navigate to={user.role === "admin" ? "/admin/dashboard" : "/"} replace />
   }
 
-  /* staff designation guard — only Manager and Receptionist can log in */
+  /* Staff designation guard — only Manager and Receptionist can log in to staff portal */
   if (user.role === "staff") {
     const allowed = ["Manager", "Receptionist"]
     if (!allowed.includes(user.designation)) {
-      /* other designations (Housekeeping, Chef, Security) → blocked */
       return (
         <div style={{
-          minHeight:"100vh", display:"flex", flexDirection:"column",
-          alignItems:"center", justifyContent:"center",
-          background:"#100E0B", padding:40, textAlign:"center"
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#100E0B",
+          padding: 40,
+          textAlign: "center",
         }}>
-          <div style={{fontSize:48,marginBottom:16}}>🚫</div>
-          <h2 style={{fontSize:20,fontWeight:700,color:"#F5ECD7",marginBottom:8}}>Access Restricted</h2>
-          <p style={{fontSize:14,color:"#6B6054",maxWidth:340,lineHeight:1.7}}>
-            Only <strong style={{color:"#C9A84C"}}>Manager</strong> and{" "}
-            <strong style={{color:"#C9A84C"}}>Receptionist</strong> designations
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🚫</div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#F5ECD7", marginBottom: 8 }}>
+            Access Restricted
+          </h2>
+          <p style={{ fontSize: 14, color: "#6B6054", maxWidth: 340, lineHeight: 1.7 }}>
+            Only <strong style={{ color: "#C9A84C" }}>Manager</strong> and{" "}
+            <strong style={{ color: "#C9A84C" }}>Receptionist</strong> designations
             have access to the staff portal.
           </p>
           <button
-            onClick={()=>{ localStorage.removeItem("token"); window.location.href="/login" }}
-            style={{marginTop:24,padding:"10px 24px",borderRadius:8,background:"rgba(201,168,76,.15)",
-              border:"1px solid rgba(201,168,76,.3)",color:"#C9A84C",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+            onClick={() => { localStorage.removeItem("token"); window.location.href = "/login" }}
+            style={{
+              marginTop: 24, padding: "10px 24px", borderRadius: 8,
+              background: "rgba(201,168,76,.15)",
+              border: "1px solid rgba(201,168,76,.3)",
+              color: "#C9A84C", fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}
+          >
             Back to Login
           </button>
         </div>

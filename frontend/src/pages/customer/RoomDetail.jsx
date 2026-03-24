@@ -1,4 +1,5 @@
 // src/pages/customer/RoomDetail.jsx
+// Fully responsive — stacks to 1 col on mobile, 5-col grid on desktop
 import React, { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getRoomTypeById } from "../../services/roomService"
@@ -103,7 +104,7 @@ function BookingPanel({ room, user, navigate, blockedDates, savedData, onSave, o
     <div className="space-y-5">
       <div className="flex items-end justify-between pb-4" style={{ borderBottom:"1px solid rgba(255,255,255,.07)" }}>
         <div>
-          <span className="text-gold font-bold text-3xl font-display">₹{fmt(pricePerNight)}</span>
+          <span className="text-gold font-bold font-display" style={{ fontSize:"clamp(22px,4vw,30px)" }}>₹{fmt(pricePerNight)}</span>
           <span className="text-resort-dim text-sm ml-1">/ night</span>
         </div>
         {nights > 0 && (
@@ -258,7 +259,8 @@ function GuestInfoPanel({ bookingData, onBack, onProceed, savedGuests, onSave })
         </div>
       </div>
 
-      <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
+      {/* Scroll container — limits height so panel doesn't overflow on mobile */}
+      <div style={{ maxHeight:"clamp(280px, 50vh, 420px)", overflowY:"auto", paddingRight:4 }} className="space-y-4">
         {guests.map((g, i) => (
           <div key={i} className="rounded-xl p-4 space-y-3"
             style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.07)" }}>
@@ -387,7 +389,8 @@ export default function RoomDetail() {
     <div style={{ position:"fixed", inset:0, overflowY:"auto", background:"#0E0C09", zIndex:50,
       display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"24px 16px" }}>
       <div style={{ width:"100%", maxWidth:"440px", margin:"auto", background:"#161410",
-        border:"1px solid rgba(201,168,76,.22)", borderRadius:"20px", padding:"28px 24px",
+        border:"1px solid rgba(201,168,76,.22)", borderRadius:"20px",
+        padding:"clamp(18px,4vw,28px) clamp(16px,4vw,24px)",
         boxShadow:"0 32px 80px rgba(0,0,0,.7)" }}>
         <BookingSuccessScreen
           bookingData={{ ...bookingData, isHall:false, pricePerNight:room?.price_per_night }}
@@ -404,154 +407,187 @@ export default function RoomDetail() {
   const stepIndex = { details:0, guests:1, payment:2 }[step] ?? 0
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-10 py-14">
-      <button onClick={() => navigate(-1)}
-        className="text-resort-muted hover:text-gold text-sm flex items-center gap-1.5 mb-8 transition group">
-        <IconArrowLeft size={14} color="rgba(255,255,255,.4)"/>
-        Back to Rooms
-      </button>
+    <>
+      {/* Responsive layout styles */}
+      <style>{`
+        .rd-wrap {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 16px 60px;
+        }
+        @media (min-width: 480px) { .rd-wrap { padding: 48px 24px 64px; } }
+        @media (min-width: 768px) { .rd-wrap { padding: 56px 32px 72px; } }
+        @media (min-width: 1024px){ .rd-wrap { padding: 56px 40px 80px; } }
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        /* 1 col on mobile, 5-col grid on lg */
+        .rd-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+        @media (min-width: 1024px) {
+          .rd-grid { grid-template-columns: 3fr 2fr; gap: 40px; }
+        }
 
-        {/* LEFT */}
-        <div className="lg:col-span-3 space-y-8 anim-up">
+        /* Booking panel — sticky only on desktop */
+        .rd-panel-sticky { position: static; }
+        @media (min-width: 1024px) {
+          .rd-panel-sticky { position: sticky; top: 24px; }
+        }
 
-          {/* Image gallery */}
-          <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,.07)" }}>
-            <div className="h-72 md:h-96 overflow-hidden relative bg-[#1A1710]">
-              {images.length > 0
-                ? <img src={`http://localhost:5000/${images[activeImg]}`} alt={room.type_name}
-                    className="w-full h-full object-cover transition duration-500"/>
-                : <div className="h-full flex items-center justify-center">
-                    <IconBed size={72} color="rgba(201,168,76,.2)"/>
-                  </div>
-              }
-              <div className="absolute inset-0 pointer-events-none"
-                style={{ background:"linear-gradient(to top, rgba(14,12,9,.6) 0%, transparent 60%)" }}/>
-              <div className="absolute bottom-5 left-5">
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-cream drop-shadow">{room.type_name}</h1>
-                <p className="text-gold/80 text-sm mt-0.5 flex items-center gap-1.5">
-                  <IconUsers size={13} color="rgba(201,168,76,.8)"/>
-                  Up to {room.capacity} guests
-                </p>
+        /* Image height */
+        .rd-hero-img { height: clamp(220px, 40vw, 384px); }
+
+        /* Thumbnail strip */
+        .rd-thumbs { display: flex; gap: 8px; padding: 10px; overflow-x: auto; }
+        .rd-thumb  { height: clamp(48px, 8vw, 56px); width: clamp(64px, 10vw, 80px); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+      `}</style>
+
+      <div className="rd-wrap">
+        <button onClick={() => navigate(-1)}
+          className="text-resort-muted hover:text-gold text-sm flex items-center gap-1.5 transition group"
+          style={{ marginBottom:"clamp(20px,4vw,32px)" }}>
+          <IconArrowLeft size={14} color="rgba(255,255,255,.4)"/>
+          Back to Rooms
+        </button>
+
+        <div className="rd-grid">
+
+          {/* ── LEFT ── */}
+          <div className="space-y-6 anim-up">
+
+            {/* Image gallery */}
+            <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,.07)" }}>
+              <div className="rd-hero-img overflow-hidden relative bg-[#1A1710]">
+                {images.length > 0
+                  ? <img src={`http://localhost:5000/${images[activeImg]}`} alt={room.type_name}
+                      className="w-full h-full object-cover transition duration-500"/>
+                  : <div className="h-full flex items-center justify-center">
+                      <IconBed size={72} color="rgba(201,168,76,.2)"/>
+                    </div>
+                }
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{ background:"linear-gradient(to top, rgba(14,12,9,.6) 0%, transparent 60%)" }}/>
+                <div className="absolute bottom-4 left-4">
+                  <h1 className="font-display font-bold text-cream drop-shadow"
+                    style={{ fontSize:"clamp(18px,4vw,28px)" }}>{room.type_name}</h1>
+                  <p className="text-gold/80 flex items-center gap-1.5 mt-0.5"
+                    style={{ fontSize:"clamp(11px,1.5vw,13px)" }}>
+                    <IconUsers size={12} color="rgba(201,168,76,.8)"/>
+                    Up to {room.capacity} guests
+                  </p>
+                </div>
               </div>
+              {images.length > 1 && (
+                <div className="rd-thumbs" style={{ background:"#12100D" }}>
+                  {images.map((img, i) => (
+                    <button key={i} onClick={() => setActiveImg(i)}
+                      className={`rd-thumb flex-shrink-0 transition border-2 ${
+                        i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
+                      <img src={`http://localhost:5000/${img}`} alt="" className="w-full h-full object-cover"/>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {images.length > 1 && (
-              <div className="flex gap-2 p-3" style={{ background:"#12100D" }}>
-                {images.map((img, i) => (
-                  <button key={i} onClick={() => setActiveImg(i)}
-                    className={`h-14 w-20 rounded-lg overflow-hidden flex-shrink-0 transition border-2 ${
-                      i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
-                    <img src={`http://localhost:5000/${img}`} alt="" className="w-full h-full object-cover"/>
-                  </button>
-                ))}
+
+            {/* About */}
+            {room.description && (
+              <div className="card">
+                <h3 className="font-display text-base font-semibold text-cream mb-3 flex items-center gap-2">
+                  <IconSparkle size={14}/> About This Room
+                </h3>
+                <p className="text-resort-muted text-sm leading-relaxed">{room.description}</p>
+              </div>
+            )}
+
+            {/* Bed configuration */}
+            {room.beds?.length > 0 && (
+              <div className="card">
+                <h3 className="font-display text-base font-semibold text-cream mb-4 flex items-center gap-2">
+                  <IconBed size={20}/> Bed Configuration
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {room.beds.map((bed, i) => (
+                    <div key={i} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-gold font-medium"
+                      style={{ background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.2)" }}>
+                      <IconBed size={18}/> {bed.count} × {bed.type}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Amenities */}
+            {room.amenities?.length > 0 && (
+              <div className="card">
+                <h3 className="font-display text-base font-semibold text-cream mb-4 flex items-center gap-2">
+                  <IconSparkle size={14}/> Amenities
+                </h3>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                  {room.amenities.map((a, i) => (
+                    <AmenityBadge key={i} name={a} size={15} fontSize={13}
+                      color="#C9A84C" background="rgba(255,255,255,.03)" border="rgba(255,255,255,.09)"/>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* About */}
-          {room.description && (
-            <div className="card p-6">
-              <h3 className="font-display text-base font-semibold text-cream mb-3 flex items-center gap-2">
-                <IconSparkle size={14}/> About This Room
-              </h3>
-              <p className="text-resort-muted text-sm leading-relaxed">{room.description}</p>
-            </div>
-          )}
+          {/* ── RIGHT — booking panel ── */}
+          <div className="anim-up d2">
+            <div className="rd-panel-sticky">
+              <div className="card" style={{ border:"1px solid rgba(201,168,76,.18)" }}>
 
-          {/* Bed configuration */}
-          {room.beds?.length > 0 && (
-            <div className="card p-6">
-              <h3 className="font-display text-base font-semibold text-cream mb-4 flex items-center gap-2">
-                <IconBed size={20}/> Bed Configuration
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {room.beds.map((bed, i) => (
-                  <div key={i} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-gold font-medium"
-                    style={{ background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.2)" }}>
-                    <IconBed size={18}/> {bed.count} × {bed.type}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── Amenities — icon badges from DB ── */}
-          {room.amenities?.length > 0 && (
-            <div className="card p-6">
-              <h3 className="font-display text-base font-semibold text-cream mb-4 flex items-center gap-2">
-                <IconSparkle size={14}/> Amenities
-              </h3>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-                {room.amenities.map((a, i) => (
-                  <AmenityBadge
-                    key={i}
-                    name={a}
-                    size={15}
-                    fontSize={13}
-                    color="#C9A84C"
-                    background="rgba(255,255,255,.03)"
-                    border="rgba(255,255,255,.09)"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT — booking panel */}
-        <div className="lg:col-span-2 anim-up d2">
-          <div className="sticky top-6">
-            <div className="card p-6" style={{ border:"1px solid rgba(201,168,76,.18)" }}>
-
-              {step !== "details" && (
-                <div className="flex items-center gap-1 mb-5">
-                  {STEPS.map((s, i) => (
-                    <React.Fragment key={s}>
-                      <div className="flex items-center gap-1.5">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                          i < stepIndex   ? "bg-gold text-[#0E0C09]"                        :
-                          i === stepIndex ? "bg-gold/20 text-gold border border-gold/50"    :
-                          "bg-white/5 text-resort-dim border border-white/10"
-                        }`}>
-                          {i < stepIndex ? <IconCheck size={10} color="#0E0C09"/> : i + 1}
+                {step !== "details" && (
+                  <div className="flex items-center gap-1 mb-5">
+                    {STEPS.map((s, i) => (
+                      <React.Fragment key={s}>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                            i < stepIndex   ? "bg-gold text-[#0E0C09]"                        :
+                            i === stepIndex ? "bg-gold/20 text-gold border border-gold/50"    :
+                            "bg-white/5 text-resort-dim border border-white/10"
+                          }`}>
+                            {i < stepIndex ? <IconCheck size={10} color="#0E0C09"/> : i + 1}
+                          </div>
+                          <span className={`text-[11px] ${i === stepIndex ? "text-gold" : "text-resort-dim"}`}>{s}</span>
                         </div>
-                        <span className={`text-[11px] ${i === stepIndex ? "text-gold" : "text-resort-dim"}`}>{s}</span>
-                      </div>
-                      {i < STEPS.length - 1 && (
-                        <div className="flex-1 h-px mx-1"
-                          style={{ background: i < stepIndex ? "rgba(201,168,76,.4)" : "rgba(255,255,255,.08)" }}/>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </div>
-              )}
+                        {i < STEPS.length - 1 && (
+                          <div className="flex-1 h-px mx-1"
+                            style={{ background: i < stepIndex ? "rgba(201,168,76,.4)" : "rgba(255,255,255,.08)" }}/>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
 
-              {step === "details" && (
-                <BookingPanel room={room} user={user} navigate={navigate}
-                  blockedDates={blockedDates} savedData={bookingData}
-                  onSave={setBookingData}
-                  onProceed={data => { setBookingData(data); setStep("guests") }}/>
-              )}
-              {step === "guests" && (
-                <GuestInfoPanel bookingData={bookingData}
-                  savedGuests={savedGuests} onSave={setSavedGuests}
-                  onBack={() => setStep("details")}
-                  onProceed={clean => { setGuestList(clean); setStep("payment") }}/>
-              )}
-              {step === "payment" && (
-                <PaymentPanel room={room} bookingData={bookingData}
-                  savedPayment={savedPayment} onSave={setSavedPayment}
-                  onBack={() => setStep("guests")}
-                  onConfirm={handleConfirm}
-                  submitting={submitting} error={apiError}/>
-              )}
+                {step === "details" && (
+                  <BookingPanel room={room} user={user} navigate={navigate}
+                    blockedDates={blockedDates} savedData={bookingData}
+                    onSave={setBookingData}
+                    onProceed={data => { setBookingData(data); setStep("guests") }}/>
+                )}
+                {step === "guests" && (
+                  <GuestInfoPanel bookingData={bookingData}
+                    savedGuests={savedGuests} onSave={setSavedGuests}
+                    onBack={() => setStep("details")}
+                    onProceed={clean => { setGuestList(clean); setStep("payment") }}/>
+                )}
+                {step === "payment" && (
+                  <PaymentPanel room={room} bookingData={bookingData}
+                    savedPayment={savedPayment} onSave={setSavedPayment}
+                    onBack={() => setStep("guests")}
+                    onConfirm={handleConfirm}
+                    submitting={submitting} error={apiError}/>
+                )}
 
+              </div>
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
-    </div>
+    </>
   )
 }

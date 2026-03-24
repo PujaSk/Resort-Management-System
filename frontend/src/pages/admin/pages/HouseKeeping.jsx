@@ -4,6 +4,7 @@ import { getRooms, updateRoomStatus } from "../../../services/roomService"
 import Badge  from "../../../components/ui/Badge"
 import Loader from "../../../components/ui/Loader"
 import { Toast, useToast } from "../../../components/ui/Loader"
+import { LockIcon } from "lucide-react"
 
 const ACCENT = {
   Available:   "#52C07A",
@@ -157,9 +158,9 @@ export default function HouseKeeping() {
                   position: "absolute", top: 10, right: 10,
                   fontSize: 11, padding: "2px 7px", borderRadius: 20,
                   background: `${accent}20`, border: `1px solid ${accent}40`,
-                  color: accent, fontWeight: 700,
+                  color: accent, fontWeight: 700, display:"flex", alignItems:"center", gap:5
                 }}>
-                  🔒 {room.status}
+                  <LockIcon size={14}/> {room.status}
                 </div>
               )}
 
