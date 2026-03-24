@@ -1,3 +1,4 @@
+/* index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -105,6 +106,304 @@
 .text-fluid-lg  { font-size: clamp(16px, 2.5vw, 20px); }
 .text-fluid-xl  { font-size: clamp(20px, 3vw, 28px); }
 .text-fluid-2xl { font-size: clamp(24px, 4vw, 36px); }
+
+
+
+
+
+
+
+
+
+
+
+
+/* ================================================================
+   ADMIN PAGES — COMPLETE RESPONSIVE STYLESHEET
+   
+   ADD TO: src/index.css  (or App.css)
+   
+   This file makes ALL admin panel pages responsive.
+   Import with:  @import './admin-responsive.css';
+   or paste the contents directly into index.css
+================================================================ */
+
+/* ────────────────────────────────────────────────────────
+   1. PAGE HEADER — always wraps on narrow screens
+──────────────────────────────────────────────────────── */
+.page-hd {
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+/* ────────────────────────────────────────────────────────
+   2. TAB ROW — horizontal scroll on mobile (no wrap)
+──────────────────────────────────────────────────────── */
+.tab-row {
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  flex-wrap: nowrap !important;
+}
+.tab-row::-webkit-scrollbar { display: none; }
+.tab-btn { flex-shrink: 0; }
+
+/* ────────────────────────────────────────────────────────
+   3. STAT CARD GRIDS
+──────────────────────────────────────────────────────── */
+
+/* 4-col → 2-col mobile (ManageStaff, Transaction KPI) */
+.grid.grid-cols-4 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+@media (min-width: 768px) {
+  .grid.grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* 3-col → 1-col mobile (ManageCustomer stats) */
+.grid.grid-cols-3 {
+  grid-template-columns: repeat(1, 1fr) !important;
+}
+@media (min-width: 480px) { .grid.grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; } }
+@media (min-width: 768px) { .grid.grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; } }
+
+/* 6-col (Dashboard, ManageRooms) */
+.grid.lg\:grid-cols-6 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+@media (min-width: 640px)  { .grid.lg\:grid-cols-6 { grid-template-columns: repeat(3, 1fr) !important; } }
+@media (min-width: 1280px) { .grid.lg\:grid-cols-6 { grid-template-columns: repeat(6, 1fr) !important; } }
+
+/* 3-col/6-col category chips (ItemManage, ManageServices) */
+.grid.grid-cols-3.lg\:grid-cols-6 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+@media (min-width: 640px)  { .grid.grid-cols-3.lg\:grid-cols-6 { grid-template-columns: repeat(3, 1fr) !important; } }
+@media (min-width: 1024px) { .grid.grid-cols-3.lg\:grid-cols-6 { grid-template-columns: repeat(6, 1fr) !important; } }
+
+/* 4-col/8-col (ManageServices categories) */
+.grid.grid-cols-4.lg\:grid-cols-8 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+@media (min-width: 480px)  { .grid.grid-cols-4.lg\:grid-cols-8 { grid-template-columns: repeat(4, 1fr) !important; } }
+@media (min-width: 1024px) { .grid.grid-cols-4.lg\:grid-cols-8 { grid-template-columns: repeat(8, 1fr) !important; } }
+
+/* 2-col/4-col KPI (RoomBooking, Transaction, Reports) */
+.grid.grid-cols-2.lg\:grid-cols-4 {
+  grid-template-columns: repeat(1, 1fr) !important;
+}
+@media (min-width: 480px)  { .grid.grid-cols-2.lg\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; } }
+@media (min-width: 1024px) { .grid.grid-cols-2.lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; } }
+
+/* 2-col/4-col for xl (Reports KPI) */
+.grid.grid-cols-2.xl\:grid-cols-4 {
+  grid-template-columns: repeat(1, 1fr) !important;
+}
+@media (min-width: 480px)  { .grid.grid-cols-2.xl\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; } }
+@media (min-width: 1280px) { .grid.grid-cols-2.xl\:grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; } }
+
+/* ────────────────────────────────────────────────────────
+   4. DASHBOARD BODY (xl:grid-cols-3)
+──────────────────────────────────────────────────────── */
+.grid.grid-cols-1.xl\:grid-cols-3 {
+  grid-template-columns: 1fr !important;
+}
+@media (min-width: 1280px) {
+  .grid.grid-cols-1.xl\:grid-cols-3 { grid-template-columns: 2fr 1fr !important; }
+}
+.xl\:col-span-2 { grid-column: span 1 !important; }
+@media (min-width: 1280px) { .xl\:col-span-2 { grid-column: span 2 !important; } }
+
+/* ────────────────────────────────────────────────────────
+   5. ADMIN PROFILE — 2-col layout
+──────────────────────────────────────────────────────── */
+.admin-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 900px;
+}
+@media (min-width: 768px) {
+  .admin-2col { grid-template-columns: 1fr 1fr; }
+}
+
+/* ────────────────────────────────────────────────────────
+   6. BOOKING ACTION DETAIL
+──────────────────────────────────────────────────────── */
+.bad-main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+@media (min-width: 768px) {
+  .bad-main-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.bad-pm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 400px) { .bad-pm-grid { grid-template-columns: 1fr; } }
+
+.bad-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+@media (min-width: 480px) { .bad-stat-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.bad-switch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+@media (max-width: 360px) { .bad-switch-grid { grid-template-columns: 1fr; } }
+
+/* ────────────────────────────────────────────────────────
+   7. ROOM BOOKING (new booking modal)
+──────────────────────────────────────────────────────── */
+.rb-guest-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 120px;
+  gap: 10px;
+}
+@media (max-width: 420px) { .rb-guest-row { grid-template-columns: 1fr; } }
+
+.rb-pm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 400px) { .rb-pm-grid { grid-template-columns: 1fr; } }
+
+.rb-date-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 360px) { .rb-date-pair { grid-template-columns: 1fr; } }
+
+.rb-step-bar { overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
+.rb-step-bar::-webkit-scrollbar { display: none; }
+
+/* ────────────────────────────────────────────────────────
+   8. MANAGE STAFF MODAL
+──────────────────────────────────────────────────────── */
+.ms-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 420px) { .ms-modal-row { grid-template-columns: 1fr; } }
+
+/* ────────────────────────────────────────────────────────
+   9. MANAGE CUSTOMER MODAL
+──────────────────────────────────────────────────────── */
+.mc-booking-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+@media (min-width: 480px) { .mc-booking-stats { grid-template-columns: repeat(4, 1fr); } }
+
+.mc-profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 360px) { .mc-profile-grid { grid-template-columns: 1fr; } }
+
+/* ────────────────────────────────────────────────────────
+   10. REPORTS
+──────────────────────────────────────────────────────── */
+.grid.grid-cols-1.xl\:grid-cols-2 {
+  grid-template-columns: 1fr !important;
+}
+@media (min-width: 1280px) {
+  .grid.grid-cols-1.xl\:grid-cols-2 { grid-template-columns: 1fr 1fr !important; }
+}
+
+.grid.grid-cols-2.sm\:grid-cols-4 {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+@media (min-width: 640px) {
+  .grid.grid-cols-2.sm\:grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* ────────────────────────────────────────────────────────
+   11. ROOM BOOKINGS (booking history expand row)
+──────────────────────────────────────────────────────── */
+.rbk-expand-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+@media (min-width: 768px) { .rbk-expand-grid { grid-template-columns: 1fr 1fr; } }
+
+.rbk-fin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+@media (min-width: 480px) { .rbk-fin-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ────────────────────────────────────────────────────────
+   12. MODAL SIZING
+──────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .modal-inner {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+  }
+}
+
+/* ────────────────────────────────────────────────────────
+   SUMMARY OF CHANGES NEEDED PER FILE
+   (beyond adding this CSS file)
+   
+   AdminProfile.jsx        ✅ Done — uses .admin-2col class
+   Dashboard.jsx           ✅ Done — uses .dash-stats, .dash-body classes
+   
+   BookingActionDetail.jsx — Replace these inline style objects:
+     "Main 2-col grid"  → add className="bad-main-grid"
+     PaymentForm grid   → add className="bad-pm-grid"
+     Extended/early grids → add className="bad-stat-grid"
+     Room switch grid   → add className="bad-switch-grid"
+   
+   HouseKeeping.jsx    — No change needed (already uses Tailwind responsive)
+   ItemManage.jsx      — No change needed (already uses Tailwind responsive)
+   ManageCustomer.jsx  — Stats grid (.grid-cols-3) handled by CSS above
+                         Modal detail grids: add className="mc-booking-stats"
+                         Profile grid: add className="mc-profile-grid"
+   ManageRooms.jsx     — Handled by .lg:grid-cols-6 CSS above
+   ManageServices.jsx  — Handled by .grid-cols-4.lg:grid-cols-8 CSS above
+   ManageStaff.jsx     — Stats (.grid-cols-4) handled above
+                         Modal row grids: add className="ms-modal-row"
+   Reports.jsx         — Handled by xl:grid-cols-2 and grid-cols-2.xl:grid-cols-4
+   RoomBooking.jsx     — Add className="rb-guest-row" to GuestDetailRow grid
+                         Add className="rb-pm-grid" to payment method grid
+                         Add className="rb-date-pair" to date pair grids
+   RoomBookings.jsx    — Add className="rbk-expand-grid" to expand row
+                         Add className="rbk-fin-grid" to financial overview
+   RoomFacilities.jsx  — No change needed (auto-fill grid already responsive)
+   RoomSettings.jsx    — No change needed (Tailwind responsive)
+   Transaction.jsx     — No change needed (table has overflow-x:auto)
+──────────────────────────────────────────────────────── */
+
+
+
+
+
 
 
 

@@ -1,9 +1,4 @@
 // src/pages/admin/pages/ItemManage.jsx
-// ─────────────────────────────────────────
-// Self-contained inventory manager.
-// Items are stored in localStorage so data persists across page navigations.
-// (No backend endpoint exists for items — extend by wiring up your own API.)
-// ─────────────────────────────────────────
 import React, { useState, useEffect } from "react"
 import Button from "../../../components/ui/Button"
 import Modal  from "../../../components/ui/Modal"
@@ -34,14 +29,13 @@ const saveItems = items => localStorage.setItem(STORAGE_KEY, JSON.stringify(item
 const emptyForm = { name: "", category: "Linen", quantity: "", minStock: "", unit: "pcs", notes: "" }
 
 export default function ItemManage() {
-  const [items,   setItemsState] = useState([])
-  const [search,  setSearch]     = useState("")
-  const [catFilter, setCatFilter] = useState("All")
-  const [modal,   setModal]      = useState(null)  // null | "create" | item
-  const [form,    setForm]       = useState(emptyForm)
+  const [items,     setItemsState] = useState([])
+  const [search,    setSearch]     = useState("")
+  const [catFilter, setCatFilter]  = useState("All")
+  const [modal,     setModal]      = useState(null)
+  const [form,      setForm]       = useState(emptyForm)
   const { toast, show } = useToast()
 
-  // Load from localStorage on mount
   useEffect(() => { setItemsState(loadItems()) }, [])
 
   const setItems = updated => { setItemsState(updated); saveItems(updated) }
@@ -79,7 +73,7 @@ export default function ItemManage() {
     return mc && mq
   })
 
-  const lowStock = items.filter(i => i.minStock > 0 && i.quantity <= i.minStock)
+  const lowStock   = items.filter(i => i.minStock > 0 && i.quantity <= i.minStock)
   const totalItems = items.reduce((s, i) => s + (i.quantity || 0), 0)
 
   return (
@@ -94,7 +88,6 @@ export default function ItemManage() {
         <Button variant="gold" icon="+" onClick={openCreate}>Add Item</Button>
       </div>
 
-      {/* Low stock warning */}
       {lowStock.length > 0 && (
         <div className="flex items-center gap-3 px-5 py-4 rounded-2xl mb-5 anim-up"
           style={{ background: "rgba(224,82,82,.08)", border: "1px solid rgba(224,82,82,.22)" }}>
@@ -106,7 +99,6 @@ export default function ItemManage() {
         </div>
       )}
 
-      {/* Stats */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6 anim-up d1">
         {CATEGORIES.slice(0, 6).map(cat => {
           const count = items.filter(i => i.category === cat).length
@@ -122,7 +114,6 @@ export default function ItemManage() {
         })}
       </div>
 
-      {/* Search + filter */}
       <div className="flex gap-3 mb-4 flex-wrap anim-up d2">
         <input placeholder="Search items…" value={search} onChange={e => setSearch(e.target.value)} className="f-input flex-1 min-w-48 max-w-sm" />
         <div className="flex gap-2 flex-wrap">
@@ -132,7 +123,6 @@ export default function ItemManage() {
         </div>
       </div>
 
-      {/* Items grid */}
       {filtered.length === 0 ? (
         <div className="card-p text-center py-16 anim-up">
           <div className="text-5xl mb-4">📦</div>
@@ -142,7 +132,7 @@ export default function ItemManage() {
           <p className="text-resort-muted text-sm max-w-md mx-auto mb-6">
             {items.length === 0
               ? "Start tracking your hotel supplies — linen, toiletries, minibar items and more."
-              : `No items match your current filter.`}
+              : "No items match your current filter."}
           </p>
           {items.length === 0 && <Button variant="gold" onClick={openCreate}>Add First Item</Button>}
         </div>
@@ -154,13 +144,11 @@ export default function ItemManage() {
             return (
               <div key={item.id} className={`card-p anim-up d${Math.min(i + 1, 5)}`} style={{ position: "relative" }}>
                 <div className="stat-bar" style={{ background: color }} />
-
                 {isLow && (
                   <div style={{ position: "absolute", top: 12, right: 12, fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "rgba(224,82,82,.15)", color: "#E05252", border: "1px solid rgba(224,82,82,.3)" }}>
                     ⚠ Low Stock
                   </div>
                 )}
-
                 <div className="flex items-start justify-between mb-3 mt-1">
                   <div>
                     <h3 className="font-semibold text-cream text-base">{item.name}</h3>
@@ -173,7 +161,6 @@ export default function ItemManage() {
                     <p className="text-[11px] text-resort-dim">{item.unit}</p>
                   </div>
                 </div>
-
                 {item.minStock > 0 && (
                   <div className="mb-3">
                     <div className="flex justify-between text-xs mb-1">
@@ -181,19 +168,11 @@ export default function ItemManage() {
                       <span style={{ color: isLow ? "#E05252" : "#52C07A" }}>Min: {item.minStock} {item.unit}</span>
                     </div>
                     <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,.06)" }}>
-                      <div style={{
-                        height: "100%", borderRadius: 2,
-                        width: `${Math.min(100, (item.quantity / (item.minStock * 2)) * 100)}%`,
-                        background: isLow ? "#E05252" : "#52C07A",
-                        transition: "width .5s"
-                      }} />
+                      <div style={{ height: "100%", borderRadius: 2, width: `${Math.min(100, (item.quantity / (item.minStock * 2)) * 100)}%`, background: isLow ? "#E05252" : "#52C07A", transition: "width .5s" }} />
                     </div>
                   </div>
                 )}
-
                 {item.notes && <p className="text-xs text-resort-dim mb-3">{item.notes}</p>}
-
-                {/* Qty controls */}
                 <div className="flex items-center gap-2 mb-3">
                   <button onClick={() => adjustQty(item.id, -1)}
                     style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(224,82,82,.1)", border: "1px solid rgba(224,82,82,.2)", color: "#E05252", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
@@ -201,7 +180,6 @@ export default function ItemManage() {
                   <button onClick={() => adjustQty(item.id, +1)}
                     style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(82,192,122,.1)", border: "1px solid rgba(82,192,122,.2)", color: "#52C07A", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                 </div>
-
                 <div className="flex gap-2 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,.05)" }}>
                   <Button size="xs" variant="outline" onClick={() => openEdit(item)} className="flex-1">Edit</Button>
                   <Button size="xs" variant="danger"  onClick={() => remove(item.id)}>Remove</Button>
@@ -212,7 +190,6 @@ export default function ItemManage() {
         </div>
       )}
 
-      {/* Modal */}
       <Modal
         open={!!modal}
         onClose={() => setModal(null)}
@@ -228,7 +205,9 @@ export default function ItemManage() {
         <form onSubmit={save} className="space-y-4">
           <Input label="Item Name" placeholder="e.g. Bath Towels" value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })} required />
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Category"
               options={CATEGORIES.map(c => ({ value: c, label: c }))}
               value={form.category}
@@ -238,12 +217,15 @@ export default function ItemManage() {
               value={form.unit}
               onChange={e => setForm({ ...form, unit: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Current Quantity" type="number" placeholder="0" value={form.quantity}
               onChange={e => setForm({ ...form, quantity: e.target.value })} />
             <Input label="Min. Stock (alert threshold)" type="number" placeholder="0" value={form.minStock}
               onChange={e => setForm({ ...form, minStock: e.target.value })} />
           </div>
+
           <Input label="Notes" rows={2} placeholder="Storage location, supplier, etc." value={form.notes}
             onChange={e => setForm({ ...form, notes: e.target.value })} />
         </form>
