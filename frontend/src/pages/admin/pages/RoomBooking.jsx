@@ -1,5 +1,5 @@
 // src/pages/admin/pages/RoomBooking.jsx
-// ─── Admin booking panel — with full-detail cancel modal ─────────────────────
+// ─── Admin booking panel — fully responsive ──────────────────────────────────
 import React, { useState, useEffect, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { getRooms, getRoomTypes }            from "../../../services/roomService"
@@ -83,6 +83,140 @@ const EMPTY_FORM = {
 }
 
 /* ════════════════════════════════════
+   RESPONSIVE STYLES
+════════════════════════════════════ */
+const RESPONSIVE_CSS = `
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  /* Guest detail row: 3-col on md+, stack on mobile */
+  .rb-guest-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  @media (min-width: 480px) {
+    .rb-guest-row {
+      grid-template-columns: 1fr 90px 120px;
+      gap: 10px;
+    }
+  }
+
+  /* Date pair: side-by-side on sm+, stack on tiny screens */
+  .rb-date-pair {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 420px) {
+    .rb-date-pair { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Payment method grid: 2-col always, but tighter on mobile */
+  .rb-pm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 480px) {
+    .rb-pm-grid { gap: 8px; }
+  }
+
+  /* Mode buttons: stack on tiny screens */
+  .rb-mode-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .rb-mode-row > * { flex: 1; min-width: 120px; }
+
+  /* Booking status row */
+  .rb-status-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .rb-status-row > * { flex: 1; min-width: 140px; }
+
+  /* Step bar: scroll on mobile */
+  .rb-step-bar {
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .rb-step-bar::-webkit-scrollbar { display: none; }
+  .rb-step-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: max-content;
+  }
+
+  /* Cancel modal: full width on mobile */
+  .rb-cancel-modal {
+    background: #161410;
+    border: 1px solid rgba(248,113,113,.3);
+    border-radius: 20px;
+    padding: 24px 20px;
+    width: calc(100vw - 2rem);
+    max-width: 500px;
+    box-shadow: 0 40px 100px rgba(0,0,0,.85);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @media (min-width: 560px) {
+    .rb-cancel-modal { padding: 32px 28px; }
+  }
+
+  /* Booking snapshot grid in cancel modal */
+  .rb-snapshot-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  @media (min-width: 400px) {
+    .rb-snapshot-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Check-in choice buttons: stack on very small screens */
+  .rb-ci-choice {
+    display: flex;
+    flex-direction: column;
+  }
+  @media (min-width: 420px) {
+    .rb-ci-choice { flex-direction: row; }
+  }
+
+  /* Summary booking stats */
+  .rb-booking-stats {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  /* Guest count controls */
+  .rb-guest-count-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 360px) {
+    .rb-guest-count-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Card detail in co-payment on mobile */
+  .rb-card-expiry-row {
+    display: flex;
+    gap: 10px;
+  }
+  @media (max-width: 360px) {
+    .rb-card-expiry-row { flex-direction: column; }
+  }
+`
+
+/* ════════════════════════════════════
    FIELD ERROR
 ════════════════════════════════════ */
 function FieldError({ msg }) {
@@ -103,30 +237,32 @@ function StepBar({ step, isHall }) {
     : ["Guest", "Room & Dates", "Guest Details", "Payment"]
   const displayStep = isHall && step===4 ? 3 : step
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:20 }}>
-      {labels.map((l, i) => {
-        const n = i+1, done = n < displayStep, cur = n === displayStep
-        return (
-          <React.Fragment key={l}>
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-              <div style={{
-                width:28, height:28, borderRadius:"50%", display:"flex", alignItems:"center",
-                justifyContent:"center", fontSize:11, fontWeight:800, transition:"all .2s",
-                background: done?"#52C07A":cur?"#C9A84C":"rgba(255,255,255,.06)",
-                color: done||cur?"#0E0C09":"#6B6054",
-                border:`2px solid ${done?"#52C07A":cur?"#C9A84C":"rgba(255,255,255,.1)"}`,
-              }}>
-                {done ? "✓" : n}
+    <div className="rb-step-bar" style={{ marginBottom:20 }}>
+      <div className="rb-step-bar-inner">
+        {labels.map((l, i) => {
+          const n = i+1, done = n < displayStep, cur = n === displayStep
+          return (
+            <React.Fragment key={l}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                <div style={{
+                  width:28, height:28, borderRadius:"50%", display:"flex", alignItems:"center",
+                  justifyContent:"center", fontSize:11, fontWeight:800, transition:"all .2s",
+                  background: done?"#52C07A":cur?"#C9A84C":"rgba(255,255,255,.06)",
+                  color: done||cur?"#0E0C09":"#6B6054",
+                  border:`2px solid ${done?"#52C07A":cur?"#C9A84C":"rgba(255,255,255,.1)"}`,
+                }}>
+                  {done ? "✓" : n}
+                </div>
+                <span style={{ fontSize:10, fontWeight:cur?700:400, color:cur?"#C9A84C":done?"#52C07A":"#6B6054", whiteSpace:"nowrap" }}>{l}</span>
               </div>
-              <span style={{ fontSize:10, fontWeight:cur?700:400, color:cur?"#C9A84C":done?"#52C07A":"#6B6054", whiteSpace:"nowrap" }}>{l}</span>
-            </div>
-            {i < labels.length-1 && (
-              <div style={{ flex:1, height:2, margin:"0 6px", marginBottom:18,
-                background: i < step-1 ? "#52C07A":"rgba(255,255,255,.06)", borderRadius:2, transition:"all .3s" }}/>
-            )}
-          </React.Fragment>
-        )
-      })}
+              {i < labels.length-1 && (
+                <div style={{ flex:1, minWidth:20, height:2, margin:"0 6px", marginBottom:18,
+                  background: i < step-1 ? "#52C07A":"rgba(255,255,255,.06)", borderRadius:2, transition:"all .3s" }}/>
+              )}
+            </React.Fragment>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -139,7 +275,7 @@ function ModeBtn({ active, onClick, children, danger }) {
       background: active ? (danger?"rgba(224,82,82,.12)":"rgba(201,168,76,.12)") : "rgba(255,255,255,.03)",
       border:`1.5px solid ${active?(danger?"rgba(224,82,82,.5)":"rgba(201,168,76,.5)"):"rgba(255,255,255,.08)"}`,
       color: active ? (danger?"#E05252":"#C9A84C") : "#8A7E6A",
-      cursor:"pointer", transition:"all .15s",
+      cursor:"pointer", transition:"all .15s", minWidth:0,
     }}>
       {children}
     </button>
@@ -221,7 +357,8 @@ function GuestDetailRow({ idx, guest, onChange, type, errors }) {
       <p style={{ fontSize:11, color:isAdult?"#C9A84C":"#5294E0", fontWeight:700, marginBottom:10, display:"inline-flex", alignItems:"center", gap:5 }}>
         {isAdult ? <UserIcon size={14}/> : <ChildIcon size={26} color="#5294E0"/>} Guest {idx+1} — {type}
       </p>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 90px 120px", gap:10 }}>
+      {/* RESPONSIVE: rb-guest-row class handles 3-col → 1-col */}
+      <div className="rb-guest-row">
         <div>
           <label style={{ fontSize:10, color:"#6B6054", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:5 }}>Full Name *</label>
           <input value={guest.name} onChange={e=>upd("name",e.target.value)} placeholder="Full name"
@@ -250,7 +387,7 @@ function GuestDetailRow({ idx, guest, onChange, type, errors }) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   ADMIN CANCEL MODAL — full breakdown, mirrors customer side
+   ADMIN CANCEL MODAL — fully responsive
 ════════════════════════════════════════════════════════════ */
 function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
   const [confirmed, setConfirmed] = useState(false)
@@ -266,10 +403,9 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
   const pricePerDay    = booking.roomType?.price_per_night || 0
   const pricePerNight  = booking.roomType?.price_per_night || 0
 
-  // Mirror backend logic exactly
   const cancFee    = isHall ? Math.round(pricePerDay * 0.25) : Math.round(total * 0.15)
   const cancRefund = Math.max(0, paid - cancFee)
-  const cancWaived = Math.max(0, due)   // remaining balance is waived on cancel
+  const cancWaived = Math.max(0, due)
   const hotelKeeps = Math.min(paid, cancFee)
 
   const isHalfPay  = paid < total && paid > 0
@@ -283,14 +419,9 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
       background:"rgba(0,0,0,.78)", backdropFilter:"blur(10px)",
       display:"flex", alignItems:"center", justifyContent:"center", padding:"16px",
     }} onClick={() => { if (!loading) onClose() }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:"#161410", border:"1px solid rgba(248,113,113,.3)",
-        borderRadius:20, padding:"32px 28px", maxWidth:500, width:"100%",
-        boxShadow:"0 40px 100px rgba(0,0,0,.85)",
-        maxHeight:"90vh", overflowY:"auto",
-      }}>
+      <div onClick={e => e.stopPropagation()} className="rb-cancel-modal">
 
-        {/* ── Icon + title ── */}
+        {/* Icon + title */}
         <div style={{ textAlign:"center", marginBottom:22 }}>
           <div style={{
             width:58, height:58, borderRadius:"50%",
@@ -298,7 +429,7 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:24, margin:"0 auto 14px",
           }}>🚫</div>
-          <h3 style={{ color:"#F5ECD7", fontSize:"1.15rem", fontWeight:700, margin:"0 0 6px", fontFamily:"Georgia,serif" }}>
+          <h3 style={{ color:"#F5ECD7", fontSize:"1.1rem", fontWeight:700, margin:"0 0 6px", fontFamily:"Georgia,serif" }}>
             {isHall ? "Cancel Venue Date?" : "Cancel This Booking?"}
           </h3>
           <p style={{ color:"rgba(255,255,255,.35)", fontSize:12, margin:0 }}>
@@ -306,7 +437,7 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </p>
         </div>
 
-        {/* ── Booking snapshot ── */}
+        {/* Booking snapshot */}
         <div style={{
           borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,.07)",
           marginBottom:18,
@@ -316,7 +447,8 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
               {isHall ? "🏛 Hall Booking" : "🛏 Room Booking"} — Ref #{booking._id?.toString().slice(-8).toUpperCase()}
             </p>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:0 }}>
+          {/* RESPONSIVE: rb-snapshot-grid */}
+          <div className="rb-snapshot-grid">
             {[
               ["Guest",      booking.customer?.name || "—"],
               [isHall?"Hall":"Room", isHall ? (booking.roomType?.type_name||"—") : (booking.room ? `#${booking.room.room_number}` : "—")],
@@ -338,18 +470,17 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </div>
         </div>
 
-        {/* ── Full cancellation breakdown ── */}
+        {/* Cancellation breakdown */}
         <div style={{
           borderRadius:12, overflow:"hidden",
           border:`1px solid ${isHall ? "rgba(248,113,113,.2)" : "rgba(251,191,36,.2)"}`,
           marginBottom:18,
         }}>
-          {/* Header */}
           <div style={{
             padding:"11px 16px",
             background: isHall ? "rgba(248,113,113,.08)" : "rgba(251,191,36,.07)",
             borderBottom:`1px solid ${isHall ? "rgba(248,113,113,.15)" : "rgba(251,191,36,.15)"}`,
-            display:"flex", alignItems:"center", justifyContent:"space-between",
+            display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8,
           }}>
             <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.8px", textTransform:"uppercase",
               color: isHall ? "#f87171" : "#fbbf24", margin:0 }}>
@@ -360,12 +491,12 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
               background: isHall ? "rgba(248,113,113,.12)" : "rgba(251,191,36,.12)",
               color:      isHall ? "#f87171" : "#fbbf24",
               border:    `1px solid ${isHall ? "rgba(248,113,113,.3)" : "rgba(251,191,36,.3)"}`,
+              whiteSpace:"nowrap",
             }}>
               {isHall ? "25% of day rate" : "15% of total"}
             </span>
           </div>
 
-          {/* Rows */}
           {[
             {
               label:    isHall ? `Full per-day rate` : `Total booking value`,
@@ -393,43 +524,41 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           ].map(({ label, sub, value, color }, i) => (
             <div key={i} style={{
               display:"flex", justifyContent:"space-between", alignItems:"center",
-              padding:"12px 16px",
+              padding:"12px 16px", gap:8,
               background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,.02)",
               borderBottom: "1px solid rgba(255,255,255,.05)",
             }}>
-              <div>
+              <div style={{ flex:1, minWidth:0 }}>
                 <p style={{ fontSize:13, color:"#C8BAA0", margin:0 }}>{label}</p>
-                {sub && <p style={{ fontSize:10, color:"#6B6054", margin:"2px 0 0" }}>{sub}</p>}
+                {sub && <p style={{ fontSize:10, color:"#6B6054", margin:"2px 0 0", wordBreak:"break-word" }}>{sub}</p>}
               </div>
-              <span style={{ fontSize:15, fontWeight:700, color }}>{value}</span>
+              <span style={{ fontSize:15, fontWeight:700, color, flexShrink:0 }}>{value}</span>
             </div>
           ))}
 
-          {/* Waived balance (50% split only) */}
           {cancWaived > 0 && (
             <div style={{
               display:"flex", justifyContent:"space-between", alignItems:"center",
-              padding:"12px 16px", background:"rgba(82,148,224,.05)",
+              padding:"12px 16px", gap:8, background:"rgba(82,148,224,.05)",
               borderBottom:"1px solid rgba(255,255,255,.05)",
             }}>
-              <div>
+              <div style={{ flex:1, minWidth:0 }}>
                 <p style={{ fontSize:13, color:"#5294E0", margin:0 }}>Remaining balance — Waived</p>
                 <p style={{ fontSize:10, color:"#6B6054", margin:"2px 0 0" }}>
                   Guest no longer owes this amount on cancellation
                 </p>
               </div>
-              <span style={{ fontSize:13, fontWeight:700, color:"#5294E0" }}>{fmtINR(cancWaived)} waived</span>
+              <span style={{ fontSize:13, fontWeight:700, color:"#5294E0", flexShrink:0 }}>{fmtINR(cancWaived)} waived</span>
             </div>
           )}
 
-          {/* Refund row — big prominent */}
           <div style={{
             display:"flex", justifyContent:"space-between", alignItems:"center",
-            padding:"16px",
+            padding:"16px", gap:8,
             background: cancRefund > 0 ? "rgba(82,192,122,.07)" : "rgba(255,255,255,.02)",
             borderTop:"2px solid rgba(255,255,255,.09)",
           }}>
-            <div>
+            <div style={{ flex:1, minWidth:0 }}>
               <p style={{ fontSize:15, fontWeight:800, color: cancRefund>0?"#52C07A":"#6B6054", margin:"0 0 4px" }}>
                 {cancRefund > 0 ? "✓ Refund to Guest" : "No Refund Applicable"}
               </p>
@@ -439,15 +568,15 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
                   : "Cancellation fee ≥ amount paid — no refund issued"}
               </p>
             </div>
-            <span style={{ fontSize:26, fontWeight:800, fontFamily:"Georgia,serif", color: cancRefund>0?"#52C07A":"#6B6054" }}>
+            <span style={{ fontSize:22, fontWeight:800, fontFamily:"Georgia,serif", color: cancRefund>0?"#52C07A":"#6B6054", flexShrink:0 }}>
               {fmtINR(cancRefund)}
             </span>
           </div>
         </div>
 
-        {/* ── Visual bar (85%/15% or 75%/25%) ── */}
+        {/* Visual bar */}
         <div style={{ marginBottom:18 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#6B6054", marginBottom:5 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#6B6054", marginBottom:5, flexWrap:"wrap", gap:4 }}>
             <span>Refundable ({isHall?"75%":"85%"} of {isHall?"day rate":"total"})</span>
             <span>Fee ({isHall?"25%":"15%"} retained)</span>
           </div>
@@ -457,7 +586,7 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </div>
         </div>
 
-        {/* ── Summary callout ── */}
+        {/* Summary callout */}
         <div style={{
           padding:"14px 16px", borderRadius:10, marginBottom:20,
           background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.15)",
@@ -486,18 +615,18 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </p>
         </div>
 
-        {/* ── Two-step confirm ── */}
+        {/* Two-step confirm */}
         {!confirmed ? (
-          <div style={{ display:"flex", gap:10 }}>
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
             <button onClick={onClose} disabled={loading} style={{
-              flex:1, padding:"12px", borderRadius:12, cursor:"pointer",
+              flex:1, minWidth:100, padding:"12px", borderRadius:12, cursor:"pointer",
               background:"transparent", border:"1px solid rgba(255,255,255,.1)",
               color:"rgba(255,255,255,.5)", fontSize:13, fontWeight:600,
             }}>
               Keep Booking
             </button>
             <button onClick={() => setConfirmed(true)} disabled={loading} style={{
-              flex:1.5, padding:"12px", borderRadius:12, cursor:"pointer",
+              flex:1.5, minWidth:140, padding:"12px", borderRadius:12, cursor:"pointer",
               background:"rgba(248,113,113,.1)", border:"1px solid rgba(248,113,113,.4)",
               color:"#f87171", fontSize:13, fontWeight:700,
             }}>
@@ -512,16 +641,16 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
             <p style={{ fontSize:13, fontWeight:700, color:"#f87171", textAlign:"center", margin:"0 0 14px" }}>
               ⚠ Final Confirmation — This cannot be undone
             </p>
-            <div style={{ display:"flex", gap:10 }}>
+            <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
               <button onClick={() => setConfirmed(false)} disabled={loading} style={{
-                flex:1, padding:"11px", borderRadius:10, cursor:"pointer",
+                flex:1, minWidth:80, padding:"11px", borderRadius:10, cursor:"pointer",
                 background:"transparent", border:"1px solid rgba(255,255,255,.1)",
                 color:"rgba(255,255,255,.4)", fontSize:12, fontWeight:600,
               }}>
                 Go Back
               </button>
               <button onClick={onConfirm} disabled={loading} style={{
-                flex:2, padding:"11px", borderRadius:10, cursor: loading?"not-allowed":"pointer",
+                flex:2, minWidth:140, padding:"11px", borderRadius:10, cursor: loading?"not-allowed":"pointer",
                 background: loading ? "rgba(248,113,113,.3)" : "#f87171",
                 border:"none", color:"white", fontSize:13, fontWeight:700,
                 display:"flex", alignItems:"center", justifyContent:"center", gap:7,
@@ -539,7 +668,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
             </div>
           </div>
         )}
-
       </div>
     </div>
   )
@@ -559,7 +687,7 @@ export default function RoomBooking() {
   const [search,     setSearch]    = useState("")
   const [bookModal,  setBookModal] = useState(false)
   const [actModal,   setActModal]  = useState(null)
-  const [cancelModal,setCancelModal] = useState(null)   // ← booking object for rich cancel modal
+  const [cancelModal,setCancelModal] = useState(null)
   const [cancelLoad, setCancelLoad]  = useState(false)
   const [dayFilter,  setDayFilter] = useState("All")
   const [coPayment,  setCoPayment] = useState({ method:"cash", upiId:"", cardNumber:"", cardName:"", expiry:"", cvv:"" })
@@ -820,7 +948,6 @@ export default function RoomBooking() {
     setActLoad(false)
   }
 
-  /* ── Handle cancel from table ── */
   const handleCancelConfirm = async () => {
     if (!cancelModal) return
     setCancelLoad(true)
@@ -833,9 +960,11 @@ export default function RoomBooking() {
     setCancelLoad(false)
   }
 
+  /* ── Co-payment fields (shared between check-in/checkout modals) ── */
   const CoPaymentFields = () => (
     <div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+      {/* RESPONSIVE: rb-pm-grid */}
+      <div className="rb-pm-grid">
         {PAYMENT_METHODS.map(m=>{
           const Icon=m.icon
           return (
@@ -846,9 +975,9 @@ export default function RoomBooking() {
                 background:coPayment.method===m.value?"rgba(201,168,76,.12)":"rgba(255,255,255,.02)",
                 border:`1.5px solid ${coPayment.method===m.value?"rgba(201,168,76,.5)":"rgba(255,255,255,.08)"}`}}>
               <Icon size={18} color={coPayment.method===m.value?"#C9A84C":"#6B6054"}/>
-              <div>
+              <div style={{ minWidth:0 }}>
                 <p style={{fontSize:12,fontWeight:700,color:coPayment.method===m.value?"#C9A84C":"#C8BAA0",marginBottom:1}}>{m.label}</p>
-                <p style={{fontSize:10,color:"#6B6054"}}>{m.desc}</p>
+                <p style={{fontSize:10,color:"#6B6054",display:"none"}}>{m.desc}</p>
               </div>
             </button>
           )
@@ -883,7 +1012,8 @@ export default function RoomBooking() {
               style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${coErrors.cardName?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"8px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
             {coErrors.cardName&&<p style={{fontSize:11,color:"#E05252",marginTop:4}}>{coErrors.cardName}</p>}
           </div>
-          <div style={{display:"flex",gap:10}}>
+          {/* RESPONSIVE: rb-card-expiry-row */}
+          <div className="rb-card-expiry-row">
             <div style={{flex:1}}>
               <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Expiry (MM/YY) *</label>
               <input value={coPayment.expiry} onChange={e=>{ const raw=e.target.value.replace(/\D/g,"").slice(0,4); const fmt=raw.length>2?raw.slice(0,2)+"/"+raw.slice(2):raw; setCoPayment(p=>({...p,expiry:fmt})); setCoErrors(er=>({...er,expiry:""})) }}
@@ -891,7 +1021,7 @@ export default function RoomBooking() {
                 style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${coErrors.expiry?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"8px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
               {coErrors.expiry&&<p style={{fontSize:11,color:"#E05252",marginTop:4}}>{coErrors.expiry}</p>}
             </div>
-            <div style={{width:100}}>
+            <div style={{width:100,flexShrink:0}}>
               <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>CVV *</label>
               <input value={coPayment.cvv} onChange={e=>{ const d=e.target.value.replace(/\D/g,"").slice(0,4); setCoPayment(p=>({...p,cvv:d})); setCoErrors(er=>({...er,cvv:""})) }}
                 placeholder="•••" maxLength={4} type="password" inputMode="numeric"
@@ -948,7 +1078,7 @@ export default function RoomBooking() {
     { key:"paymentStatus", label:"Payment",
       render:v=>{const c=PCOLOR[v]||"#6B6054";return<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:`${c}15`,color:c,border:`1px solid ${c}22`,whiteSpace:"nowrap"}}>{v}</span>}
     },
-    { key:"_id", label:"Actions",
+    { key:"actions", label:"Actions",
       render:(_,r)=>(
         <div className="flex gap-1.5">
           <Button size="xs" variant="gold" onClick={()=>navigate(`${basePath}/bookings/${r._id}`,{state:{booking:r}})}>View</Button>
@@ -971,9 +1101,10 @@ export default function RoomBooking() {
 
   return (
     <div>
+      <style>{RESPONSIVE_CSS}</style>
       <Toast {...(toast||{})}/>
 
-      {/* ══ RICH CANCEL MODAL ══ */}
+      {/* RICH CANCEL MODAL */}
       {cancelModal && (
         <AdminCancelModal
           booking={cancelModal}
@@ -993,13 +1124,13 @@ export default function RoomBooking() {
         </Button>
       </div>
 
-      {/* KPI */}
+      {/* KPI — grid-cols-2 lg:grid-cols-4 handled by index.css */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 anim-up d1">
         {[
-          { label:"Total Bookings",          value:stats.total,           color:"#C9A84C", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> },
-          { label:"Checked-In",              value:stats.checkedIn,       color:"#52C07A", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> },
-          { label:"Awaiting Check-In",       value:stats.booked,          color:"#5294E0", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="12" y1="14" x2="15" y2="14"/></svg> },
-          { label:"Revenue Collected",       value:fmtINR(stats.revenue), color:"#9B7FE8", Icon:()=><RupeeIcon size={20} color="currentColor"/> },
+          { label:"Total Bookings",    value:stats.total,           color:"#C9A84C", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> },
+          { label:"Checked-In",        value:stats.checkedIn,       color:"#52C07A", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> },
+          { label:"Awaiting Check-In", value:stats.booked,          color:"#5294E0", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="12" y1="14" x2="15" y2="14"/></svg> },
+          { label:"Revenue Collected", value:fmtINR(stats.revenue), color:"#9B7FE8", Icon:()=><RupeeIcon size={20} color="currentColor"/> },
         ].map(k=>(
           <div key={k.label} className="stat-card">
             <div className="stat-bar" style={{background:k.color}}/>
@@ -1029,6 +1160,7 @@ export default function RoomBooking() {
 
       {tab==="bookings"&&(
         <div className="anim-up d2">
+          {/* Search + status filters */}
           <div className="flex gap-3 mb-3 flex-wrap">
             <input placeholder="Search by ref ID, guest or room…" value={search} onChange={e=>setSearch(e.target.value)} className="f-input flex-1 min-w-48 max-w-sm"/>
             <div className="flex gap-2 flex-wrap">
@@ -1038,6 +1170,7 @@ export default function RoomBooking() {
             </div>
           </div>
 
+          {/* Today filters */}
           <div className="flex gap-2 mb-4 flex-wrap items-center">
             <span style={{fontSize:11,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginRight:4}}>Today:</span>
             {[
@@ -1064,7 +1197,8 @@ export default function RoomBooking() {
             )}
           </div>
 
-          <div className="flex gap-3 mb-4 flex-wrap">
+          {/* Status summary pills */}
+          <div className="rb-booking-stats">
             {[{label:"Booked",count:bookings.filter(b=>b.bookingStatus==="Booked").length,color:"#5294E0"},
               {label:"Checked-In",count:bookings.filter(b=>b.bookingStatus==="Checked-In").length,color:"#52C07A"},
               {label:"Checked-Out",count:bookings.filter(b=>b.bookingStatus==="Checked-Out").length,color:"#6B6054"},
@@ -1120,7 +1254,7 @@ export default function RoomBooking() {
         subtitle="Admin walk-in booking"
         wide
         footer={
-          <div style={{display:"flex",justifyContent:"space-between",width:"100%",alignItems:"center"}}>
+          <div style={{display:"flex",justifyContent:"space-between",width:"100%",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <div style={{display:"flex",gap:5}}>
               {(isHall?[1,2,4]:[1,2,3,4]).map((n)=>(
                 <div key={n} style={{width:n===step?22:7,height:7,borderRadius:4,transition:"all .2s",background:n<step?"#52C07A":n===step?"#C9A84C":"rgba(255,255,255,.1)"}}/>
@@ -1141,7 +1275,8 @@ export default function RoomBooking() {
             <div className="space-y-5">
               <div>
                 <SectionLabel text="Booking Type"/>
-                <div style={{display:"flex",gap:8}}>
+                {/* RESPONSIVE: rb-mode-row */}
+                <div className="rb-mode-row">
                   <ModeBtn active={form.bookingType==="room"} onClick={()=>set({bookingType:"room",hallDates:[],checkIn:todayISO(),checkOut:"",roomTypeId:""})}><IconBed size={20}/> Room Booking</ModeBtn>
                   <ModeBtn active={form.bookingType==="hall"} onClick={()=>set({bookingType:"hall",hallDates:[],checkIn:"",checkOut:"",roomTypeId:""})}><HallIcon size={20}/> Hall / Banquet</ModeBtn>
                 </div>
@@ -1149,10 +1284,11 @@ export default function RoomBooking() {
               {form.bookingType==="room"&&(
                 <div>
                   <SectionLabel text="Booking Status"/>
-                  <div style={{display:"flex",gap:8}}>
+                  {/* RESPONSIVE: rb-status-row */}
+                  <div className="rb-status-row">
                     {BOOKING_STATUSES.map(bs=>(
                       <button key={bs.value} type="button" onClick={()=>set({bookingStatus:bs.value})}
-                        style={{flex:1,padding:"10px 12px",borderRadius:10,cursor:"pointer",textAlign:"left",transition:"all .15s",
+                        style={{flex:1,minWidth:130,padding:"10px 12px",borderRadius:10,cursor:"pointer",textAlign:"left",transition:"all .15s",
                           background:form.bookingStatus===bs.value?"rgba(201,168,76,.1)":"rgba(255,255,255,.02)",
                           border:`1.5px solid ${form.bookingStatus===bs.value?"rgba(201,168,76,.5)":"rgba(255,255,255,.08)"}`}}>
                         <p style={{fontSize:13,fontWeight:700,color:form.bookingStatus===bs.value?"#C9A84C":"#C8BAA0",marginBottom:2}}>{bs.label}</p>
@@ -1164,7 +1300,7 @@ export default function RoomBooking() {
               )}
               <div>
                 <SectionLabel text="Guest"/>
-                <div style={{display:"flex",gap:8,marginBottom:12}}>
+                <div className="rb-mode-row" style={{marginBottom:12}}>
                   <ModeBtn active={form.customerMode==="existing"} onClick={()=>set({customerMode:"existing",customerId:""})}><UserIcon size={14}/> Registered Guest</ModeBtn>
                   <ModeBtn active={form.customerMode==="walkin"} onClick={()=>set({customerMode:"walkin",customerId:""})}><WalkInIcon size={20}/> Walk-in / New Guest</ModeBtn>
                 </div>
@@ -1205,8 +1341,8 @@ export default function RoomBooking() {
                     </div>
                     <div>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Email Address *</label>
-                      <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                        <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:8,alignItems:"flex-start",flexWrap:"wrap"}}>
+                        <div style={{flex:1,minWidth:160}}>
                           <input value={form.guestEmail} onChange={e=>{ set({guestEmail:e.target.value,emailOtpSent:false,emailVerified:false,emailOtpCode:"",existingCustomerId:""}); if(errors.guestEmail)setErrors(er=>({...er,guestEmail:""})) }}
                             placeholder="guest@email.com" type="email" disabled={form.emailVerified}
                             style={{width:"100%",background:form.emailVerified?"rgba(82,192,122,.06)":"rgba(255,255,255,.04)",border:`1px solid ${form.emailVerified?"rgba(82,192,122,.4)":errors.guestEmail?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
@@ -1224,10 +1360,10 @@ export default function RoomBooking() {
                     {form.emailOtpSent&&!form.emailVerified&&(
                       <div style={{padding:"12px 14px",borderRadius:10,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.08)"}}>
                         <p style={{fontSize:11,color:"#8A7E6A",marginBottom:8}}>Enter the 6-digit OTP sent to <strong style={{color:"#C9A84C"}}>{form.guestEmail}</strong></p>
-                        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
                           <input value={form.emailOtpCode} onChange={e=>{ const v=e.target.value.replace(/\D/g,"").slice(0,6); set({emailOtpCode:v}); if(errors.emailOtp)setErrors(er=>({...er,emailOtp:""})) }}
                             placeholder="6-digit OTP" maxLength={6} inputMode="numeric"
-                            style={{flex:1,background:"rgba(255,255,255,.04)",border:`1px solid ${errors.emailOtp?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:16,color:"#F5ECD7",outline:"none",letterSpacing:"0.25em",textAlign:"center"}}/>
+                            style={{flex:1,minWidth:120,background:"rgba(255,255,255,.04)",border:`1px solid ${errors.emailOtp?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:16,color:"#F5ECD7",outline:"none",letterSpacing:"0.25em",textAlign:"center"}}/>
                           <button type="button" disabled={otpVerify||form.emailOtpCode.length<4} onClick={handleVerifyOtp}
                             style={{padding:"9px 16px",borderRadius:8,fontSize:12,fontWeight:700,cursor:otpVerify?"not-allowed":"pointer",background:"rgba(82,192,122,.15)",border:"1px solid rgba(82,192,122,.4)",color:"#52C07A",opacity:otpVerify?0.6:1,whiteSpace:"nowrap"}}>
                             {otpVerify?"Verifying…":"Verify OTP"}
@@ -1241,7 +1377,8 @@ export default function RoomBooking() {
                         <p style={{fontSize:12,color:"#E05252",display:"flex",alignItems:"center",gap:5}}><IconWarning size={12} color="#E05252"/> {errors.emailVerify}</p>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 gap-3">
+                    {/* RESPONSIVE: form-grid-2 class from index.css */}
+                    <div className="form-grid-2">
                       <div>
                         <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>City *</label>
                         <input value={form.guestCity} onChange={e=>{ set({guestCity:e.target.value}); if(errors.guestCity)setErrors(er=>({...er,guestCity:""})) }} placeholder="City"
@@ -1301,7 +1438,8 @@ export default function RoomBooking() {
               )}
               {form.bookingType==="room"&&(
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* RESPONSIVE: rb-date-pair */}
+                  <div className="rb-date-pair">
                     <div>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Check-in Date *</label>
                       <input type="date" value={form.checkIn} min={todayISO()} onChange={e=>{ set({checkIn:e.target.value,checkOut:""}); if(errors.checkIn)setErrors(er=>({...er,checkIn:""})) }}
@@ -1358,7 +1496,8 @@ export default function RoomBooking() {
                 <span style={{fontSize:12,fontWeight:700,color:totalGuests>capacity?"#E05252":"#52C07A"}}>{totalGuests}/{capacity}</span>
               </div>
               {errors._capacity&&<FieldError msg={errors._capacity}/>}
-              <div className="grid grid-cols-2 gap-4">
+              {/* RESPONSIVE: rb-guest-count-grid */}
+              <div className="rb-guest-count-grid">
                 {[{label:"Adults (18+)",key:"adults",min:1},{label:"Children (1–17)",key:"children",min:0}].map(({label,key,min})=>(
                   <div key={key}>
                     <p style={{fontSize:11,color:"#8A7E6A",marginBottom:8,fontWeight:500}}>{label}</p>
@@ -1389,7 +1528,7 @@ export default function RoomBooking() {
             <div className="space-y-4">
               <SectionLabel text="Payment"/>
               <div style={{padding:"14px 16px",borderRadius:10,background:"rgba(201,168,76,.06)",border:"1px solid rgba(201,168,76,.2)"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
                   <span style={{fontSize:12,color:"#8A7E6A"}}>
                     {form.bookingType==="room"?`${nights} night${nights!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`:`${form.hallDates.length} day${form.hallDates.length!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`}
                   </span>
@@ -1399,7 +1538,8 @@ export default function RoomBooking() {
               </div>
               <div>
                 <p style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Payment Method *</p>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {/* RESPONSIVE: rb-pm-grid */}
+                <div className="rb-pm-grid">
                   {PAYMENT_METHODS.map(m=>{
                     const Icon=m.icon
                     return (
@@ -1408,9 +1548,9 @@ export default function RoomBooking() {
                           background:form.paymentMethod===m.value?"rgba(201,168,76,.12)":"rgba(255,255,255,.02)",
                           border:`1.5px solid ${form.paymentMethod===m.value?"rgba(201,168,76,.5)":"rgba(255,255,255,.08)"}`}}>
                         <Icon size={22} color={form.paymentMethod===m.value?"#C9A84C":"#6B6054"}/>
-                        <div>
+                        <div style={{ minWidth:0 }}>
                           <p style={{fontSize:13,fontWeight:700,color:form.paymentMethod===m.value?"#C9A84C":"#C8BAA0",marginBottom:2}}>{m.label}</p>
-                          <p style={{fontSize:11,color:"#6B6054"}}>{m.desc}</p>
+                          <p style={{fontSize:11,color:"#6B6054",display:"none"}}>{m.desc}</p>
                         </div>
                       </button>
                     )
@@ -1446,7 +1586,8 @@ export default function RoomBooking() {
                       style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${errors.cardName?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
                     <FieldError msg={errors.cardName}/>
                   </div>
-                  <div style={{display:"flex",gap:12}}>
+                  {/* RESPONSIVE: rb-card-expiry-row */}
+                  <div className="rb-card-expiry-row">
                     <div style={{flex:1}}>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Expiry (MM/YY) *</label>
                       <input value={form.expiry} onChange={e=>{ const d=e.target.value.replace(/\D/g,"").slice(0,4); set({expiry:d.length>2?d.slice(0,2)+"/"+d.slice(2):d}); if(errors.expiry)setErrors(er=>({...er,expiry:""})) }}
@@ -1454,7 +1595,7 @@ export default function RoomBooking() {
                         style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${errors.expiry?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
                       <FieldError msg={errors.expiry}/>
                     </div>
-                    <div style={{width:110}}>
+                    <div style={{width:110,flexShrink:0}}>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>CVV *</label>
                       <input value={form.cvv} onChange={e=>{ const d=e.target.value.replace(/\D/g,"").slice(0,4); set({cvv:d}); if(errors.cvv)setErrors(er=>({...er,cvv:""})) }}
                         placeholder="•••" maxLength={4} type="password" inputMode="numeric"
@@ -1478,9 +1619,9 @@ export default function RoomBooking() {
                   ["Payment", PAYMENT_METHODS.find(m=>m.value===form.paymentMethod)?.label||"—"],
                   ["Total",   fmtINR(totalAmount)],
                 ].map(([l,v])=>(
-                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.04)"}}>
-                    <span style={{fontSize:11,color:"#6B6054"}}>{l}</span>
-                    <span style={{fontSize:11,fontWeight:600,color:"#F5ECD7",maxWidth:"60%",textAlign:"right"}}>{v}</span>
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.04)",gap:8}}>
+                    <span style={{fontSize:11,color:"#6B6054",flexShrink:0}}>{l}</span>
+                    <span style={{fontSize:11,fontWeight:600,color:"#F5ECD7",maxWidth:"60%",textAlign:"right",wordBreak:"break-word"}}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -1516,9 +1657,9 @@ export default function RoomBooking() {
               <div style={{padding:"14px 16px",borderRadius:10,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.06)"}}>
                 {[["Ref",`#${bk._id?.toString().slice(-8).toUpperCase()}`],["Guest",bk.customer?.name||"—"],["Room",bk.room?`#${bk.room.room_number}`:"—"],["Check-in",fmtDate(bk.checkInDateTime)],["Check-out",fmtDate(bk.checkOutDateTime)],["Total",fmtINR(total)],["Paid",fmtINR(paid)],...(due>0?[["Due",fmtINR(due)]]:[])]
                   .map(([l,v])=>(
-                    <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,.04)"}}>
-                      <span style={{fontSize:12,color:"#6B6054"}}>{l}</span>
-                      <span style={{fontSize:12,fontWeight:600,color:l==="Due"?"#E0A852":l==="Paid"?"#52C07A":"#F5ECD7"}}>{v}</span>
+                    <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,.04)",gap:8}}>
+                      <span style={{fontSize:12,color:"#6B6054",flexShrink:0}}>{l}</span>
+                      <span style={{fontSize:12,fontWeight:600,color:l==="Due"?"#E0A852":l==="Paid"?"#52C07A":"#F5ECD7",textAlign:"right"}}>{v}</span>
                     </div>
                   ))}
               </div>
@@ -1533,15 +1674,18 @@ export default function RoomBooking() {
                     <p style={{fontSize:12,fontWeight:700,color:"#E0A852",marginBottom:2,display:"flex",alignItems:"center",gap:5}}><IconWarning size={13} color="#E0A852"/> Partial payment — {fmtINR(due)} still due</p>
                     <p style={{fontSize:11,color:"#8A7E6A"}}>When would you like to collect the remaining amount?</p>
                   </div>
-                  <div style={{display:"flex",gap:0}}>
+                  {/* RESPONSIVE: rb-ci-choice */}
+                  <div className="rb-ci-choice">
                     {[
                       {val:"now",     Icon:RupeeIcon, label:"Collect Now",          desc:"Collect at check-in"},
                       {val:"checkout",Icon:DoorIcon,  label:"Collect at Check-Out", desc:"Guest pays on departure"},
                     ].map((opt,i)=>(
                       <button key={opt.val} type="button" onClick={()=>{ setCiPayChoice(opt.val); setCoErrors({}) }}
                         style={{flex:1,padding:"12px 14px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"flex-start",gap:8,
-                          borderRight:i===0?"1px solid rgba(255,255,255,.06)":"none",
-                          background:ciPayChoice===opt.val?"rgba(201,168,76,.12)":"rgba(255,255,255,.02)",border:"none",borderTop:"1px solid rgba(255,255,255,.06)"}}>
+                          borderRight:"none",
+                          borderTop:"1px solid rgba(255,255,255,.06)",
+                          background:ciPayChoice===opt.val?"rgba(201,168,76,.12)":"rgba(255,255,255,.02)",border:"none",
+                          borderBottom: i===0 ? "1px solid rgba(255,255,255,.06)" : "none"}}>
                         <opt.Icon size={15} color={ciPayChoice===opt.val?"#C9A84C":"#6B6054"} style={{marginTop:2,flexShrink:0}}/>
                         <div>
                           <p style={{fontSize:13,fontWeight:700,color:ciPayChoice===opt.val?"#C9A84C":"#C8BAA0",marginBottom:2}}>{opt.label}</p>
@@ -1552,7 +1696,7 @@ export default function RoomBooking() {
                   </div>
                   {ciPayChoice==="now"&&(
                     <div style={{padding:14,borderTop:"1px solid rgba(255,255,255,.06)",background:"rgba(255,255,255,.01)"}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",borderRadius:8,background:"rgba(224,168,82,.12)",border:"1px solid rgba(224,168,82,.3)",marginBottom:12}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",borderRadius:8,background:"rgba(224,168,82,.12)",border:"1px solid rgba(224,168,82,.3)",marginBottom:12,gap:8}}>
                         <span style={{fontSize:11,color:"#8A7E6A"}}>Collecting now</span>
                         <span style={{fontSize:18,fontWeight:800,color:"#E0A852"}}>{fmtINR(due)}</span>
                       </div>
@@ -1575,7 +1719,7 @@ export default function RoomBooking() {
                 <div style={{borderRadius:10,overflow:"hidden",border:"1px solid rgba(224,168,82,.3)"}}>
                   <div style={{padding:"10px 14px",background:"rgba(224,168,82,.08)"}}>
                     <p style={{fontSize:12,fontWeight:700,color:"#E0A852",marginBottom:2,display:"flex",alignItems:"center",gap:5}}><IconWarning size={13} color="#E0A852"/> Collect due amount before checkout</p>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6,gap:8}}>
                       <span style={{fontSize:11,color:"#8A7E6A"}}>Amount due</span>
                       <span style={{fontSize:20,fontWeight:800,color:"#E0A852"}}>{fmtINR(due)}</span>
                     </div>
@@ -1589,9 +1733,6 @@ export default function RoomBooking() {
           )
         })()}
       </Modal>
-
-      {/* spin keyframes */}
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
