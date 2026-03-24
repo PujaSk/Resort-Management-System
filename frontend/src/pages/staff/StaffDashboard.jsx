@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext"
 import { getRooms } from "../../services/roomService"
 import { getAllBookings } from "../../services/bookingService"
 import Loader from "../../components/ui/Loader"
+import { BroomIcon } from "../../components/ui/Icons"
+import { MoneyIcon } from "../customer/bookingShared"
 
 const C = {
   gold:"#C9A84C", green:"#52C07A", red:"#E05252",
@@ -14,7 +16,6 @@ const BOOKING_COLOR = {
   "Checked-Out":"#6B6054","Cancelled":"#E05252",
 }
 
-/* ─── SVG icons ─── */
 const SVG = ({ children, size=20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -23,10 +24,7 @@ const SVG = ({ children, size=20 }) => (
 )
 const Icons = {
   CheckSq:   ()=><SVG><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></SVG>,
-  Broom:     ()=><SVG><path d="M3 22l4-4"/><path d="M7 18l9-9"/><path d="M14 3l7 7-2 2-7-7 2-2z"/><path d="M5 16l3 3"/></SVG>,
   Bell:      ()=><SVG><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></SVG>,
-  Coins:     ()=><SVG><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><line x1="16.71" y1="13.88" x2="17.64" y2="13.88"/></SVG>,
-  Calendar:  ()=><SVG><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></SVG>,
   Door:      ()=><SVG size={18}><path d="M13 4H3v16h10"/><path d="M13 4h8v16h-8"/><circle cx="17" cy="12" r="1" fill="currentColor"/></SVG>,
   ClipCheck: ()=><SVG size={18}><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></SVG>,
   Warning:   ()=><SVG size={18}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></SVG>,
@@ -36,20 +34,34 @@ const fmtDate  = d => d ? new Date(d).toLocaleDateString("en-IN",{day:"2-digit",
 const fmtINR   = n => { if(!n)return"₹0"; if(n>=100000)return`₹${(n/100000).toFixed(1)}L`; if(n>=1000)return`₹${(n/1000).toFixed(1)}K`; return`₹${n}` }
 const greeting = () => { const h=new Date().getHours(); return h<12?"morning":h<17?"afternoon":"evening" }
 
+/* ── JS breakpoint hook (same pattern as Sidebar) ── */
+function useBreakpoint() {
+  const get = () => ({
+    isSm: window.innerWidth >= 640,
+    isXl: window.innerWidth >= 1280,
+  })
+  const [bp, setBp] = useState(get)
+  useEffect(() => {
+    const handler = () => setBp(get())
+    window.addEventListener("resize", handler)
+    return () => window.removeEventListener("resize", handler)
+  }, [])
+  return bp
+}
+
 function StatCard({ Icon, label, value, accent, sub, delay=1 }) {
   return (
     <div className={`stat-card anim-up d${delay}`} style={{position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,transparent,${accent},transparent)`}}/>
       <div style={{position:"absolute",top:-20,right:-20,width:80,height:80,borderRadius:"50%",background:`${accent}18`,filter:"blur(18px)",pointerEvents:"none"}}/>
       <div className="stat-bar" style={{background:accent}}/>
-      <div className="flex items-start justify-between mt-1">
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginTop:4}}>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-2" style={{color:"#8A7E6A"}}>{label}</p>
-          <p className="font-display text-4xl font-bold" style={{color:accent}}>{value}</p>
-          {sub && <p className="text-resort-dim text-xs mt-1.5">{sub}</p>}
+          <p style={{fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,color:"#8A7E6A"}}>{label}</p>
+          <p className="font-display" style={{fontSize:36,fontWeight:700,color:accent,lineHeight:1}}>{value}</p>
+          {sub && <p style={{fontSize:12,color:"#6B6054",marginTop:6}}>{sub}</p>}
         </div>
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-          style={{background:`${accent}15`,border:`1px solid ${accent}22`,flexShrink:0,color:accent}}>
+        <div style={{width:44,height:44,borderRadius:12,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:`${accent}15`,border:`1px solid ${accent}22`,color:accent}}>
           <Icon/>
         </div>
       </div>
@@ -59,7 +71,7 @@ function StatCard({ Icon, label, value, accent, sub, delay=1 }) {
 
 function DivRow({ children }) {
   return (
-    <div className="flex items-center justify-between py-3" style={{borderBottom:"1px solid rgba(255,255,255,.04)"}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",borderBottom:"1px solid rgba(255,255,255,.04)"}}>
       {children}
     </div>
   )
@@ -73,10 +85,10 @@ function Chip({ label, color }) {
 
 function SectionTitle({ title, count, accent=C.gold }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
         <div style={{width:3,height:16,borderRadius:99,background:accent}}/>
-        <h3 className="font-display text-lg font-semibold text-cream">{title}</h3>
+        <h3 className="font-display" style={{fontSize:18,fontWeight:600,color:"#F5ECD7"}}>{title}</h3>
       </div>
       {count!=null && <span style={{fontSize:11,fontWeight:600,padding:"2px 10px",borderRadius:20,background:`${accent}15`,color:accent,border:`1px solid ${accent}25`}}>{count}</span>}
     </div>
@@ -86,21 +98,20 @@ function SectionTitle({ title, count, accent=C.gold }) {
 function Bar({ label, count, total, color }) {
   const pct = total>0 ? Math.round((count/total)*100) : 0
   return (
-    <div className="mb-3.5">
-      <div className="flex justify-between mb-1.5 items-center">
-        <div className="flex items-center gap-2">
+    <div style={{marginBottom:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:6,alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
           <div style={{width:6,height:6,borderRadius:"50%",background:color,flexShrink:0}}/>
-          <span className="text-resort-muted text-sm">{label}</span>
+          <span style={{fontSize:14,color:"#8A7E6A"}}>{label}</span>
         </div>
-        <div className="text-sm">
-          <span className="font-semibold text-cream">{count}</span>
-          <span className="text-resort-dim"> / {total}</span>
+        <div style={{fontSize:14}}>
+          <span style={{fontWeight:600,color:"#F5ECD7"}}>{count}</span>
+          <span style={{color:"#6B6054"}}> / {total}</span>
           <span style={{marginLeft:6,fontSize:10,color,fontWeight:600}}>{pct}%</span>
         </div>
       </div>
-      <div className="h-1.5 rounded-full" style={{background:"#2A2620"}}>
-        <div className="h-full rounded-full transition-all duration-1000"
-          style={{width:`${pct}%`,background:`linear-gradient(90deg,${color}88,${color})`}}/>
+      <div style={{height:6,borderRadius:3,background:"#2A2620"}}>
+        <div style={{height:"100%",borderRadius:3,width:`${pct}%`,background:`linear-gradient(90deg,${color}88,${color})`,transition:"width 1s"}}/>
       </div>
     </div>
   )
@@ -111,6 +122,7 @@ export default function StaffDashboard() {
   const [rooms,    setRooms]    = useState([])
   const [bookings, setBookings] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const { isSm, isXl } = useBreakpoint()
 
   const designation = user?.designation || ""
 
@@ -156,21 +168,53 @@ export default function StaffDashboard() {
     { Icon:Icons.Warning,   label:"Need Attention",   val:attention.length, col:C.red   },
   ]
 
+  // KPI grid: 2 cols mobile, 4 cols sm+
+  const kpiGrid = {
+    display: "grid",
+    gridTemplateColumns: isSm ? "repeat(4,1fr)" : "repeat(2,1fr)",
+    gap: 16,
+    marginBottom: 24,
+  }
+
+  // Body grid: 1 col mobile, 3-col on xl (2fr + 1fr)
+  const bodyGrid = {
+    display: "grid",
+    gridTemplateColumns: isXl ? "2fr 1fr" : "1fr",
+    gap: 20,
+    alignItems: "flex-start",
+  }
+
+  // Right panel inner: side-by-side on sm (when not xl), stacked on xl
+  const rightInner = {
+    display: "grid",
+    gridTemplateColumns: (isSm && !isXl) ? "1fr 1fr" : "1fr",
+    gap: 20,
+    alignItems: "flex-start",
+  }
+
+  // Activity mini-grid
+  const activityGrid = {
+    display: "grid",
+    gridTemplateColumns: isSm ? "repeat(4,1fr)" : "repeat(2,1fr)",
+    gap: 12,
+    marginBottom: 12,
+  }
+
   return (
     <div>
       {/* Greeting */}
-      <div className="anim-up mb-7" style={{padding:"20px 24px",borderRadius:14,background:"linear-gradient(120deg,rgba(201,168,76,.08) 0%,rgba(255,255,255,.02) 100%)",border:"1px solid rgba(201,168,76,.14)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+      <div className="anim-up" style={{padding:"20px 24px",borderRadius:14,background:"linear-gradient(120deg,rgba(201,168,76,.08) 0%,rgba(255,255,255,.02) 100%)",border:"1px solid rgba(201,168,76,.14)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:28}}>
         <div>
-          <h1 className="font-display text-3xl font-bold text-cream">
-            Good {greeting()}, {user?.staff_name||user?.name||"Staff"} <span className="text-gold">✦</span>
+          <h1 className="font-display" style={{fontSize:"clamp(22px,3vw,30px)",fontWeight:700,color:"#F5ECD7"}}>
+            Good {greeting()}, {user?.staff_name||user?.name||"Staff"} <span style={{color:C.gold}}>✦</span>
           </h1>
-          <p className="text-resort-muted text-sm mt-1.5">
+          <p style={{fontSize:13,color:"#8A7E6A",marginTop:6}}>
             {new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
             &nbsp;·&nbsp;
             <span style={{color:C.gold,fontWeight:600}}>{designation}</span>
           </p>
         </div>
-        <div className="flex items-center gap-3" style={{flexWrap:"wrap"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
           {bannerStats.map((t,i)=>(
             <div key={i} style={{padding:"9px 14px",borderRadius:10,textAlign:"center",background:`${t.col}10`,border:`1px solid ${t.col}22`}}>
               <div style={{display:"flex",justifyContent:"center",marginBottom:2,color:t.col}}><t.Icon/></div>
@@ -182,22 +226,23 @@ export default function StaffDashboard() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid gap-4 mb-6 grid-cols-2 lg:grid-cols-4">
-        <StatCard Icon={Icons.CheckSq} label="Available Rooms" value={avail}            accent={C.green}  sub="Ready for check-in"    delay={1}/>
-        <StatCard Icon={Icons.Broom}   label="Needs Cleaning"  value={clean}            accent={C.amber}  sub="Awaiting housekeeping" delay={2}/>
-        <StatCard Icon={Icons.Bell}    label="Guests In House" value={checkedIn.length} accent={C.teal}   sub="Currently checked in"  delay={3}/>
-        <StatCard Icon={Icons.Coins}   label="Today's Revenue" value={fmtINR(todayRev)} accent={C.purple} sub="Collected today"       delay={4}/>
+      <div style={kpiGrid}>
+        <StatCard Icon={Icons.CheckSq}                             label="Available Rooms" value={avail}            accent={C.green}  sub="Ready for check-in"    delay={1}/>
+        <StatCard Icon={() => <BroomIcon size={20}/>}              label="Needs Cleaning"  value={clean}            accent={C.amber}  sub="Awaiting housekeeping" delay={2}/>
+        <StatCard Icon={Icons.Bell}                                label="Guests In House" value={checkedIn.length} accent={C.teal}   sub="Currently checked in"  delay={3}/>
+        <StatCard Icon={() => <MoneyIcon size={20} color="#9B7FE8"/>} label="Today's Revenue" value={fmtINR(todayRev)} accent={C.purple} sub="Collected today"    delay={4}/>
       </div>
 
       {/* Body */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <div style={bodyGrid}>
 
-        <div className="xl:col-span-2 space-y-5">
+        {/* Left — activity + recent bookings */}
+        <div style={{display:"flex",flexDirection:"column",gap:20}}>
 
           {/* Today's activity */}
           <div className="card-p anim-up d3">
             <SectionTitle title="Today's Activity" accent={C.blue}/>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div style={activityGrid}>
               {[
                 {label:"Check-ins Today",  val:todayCI.length,   col:C.green},
                 {label:"Check-outs Today", val:todayCO.length,   col:C.amber},
@@ -205,7 +250,7 @@ export default function StaffDashboard() {
                 {label:"Today's Pending",  val:fmtINR(todayDue), col:C.red},
               ].map((m,i)=>(
                 <div key={i} style={{padding:"11px 14px",borderRadius:10,background:`${m.col}10`,border:`1px solid ${m.col}1A`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span className="text-xs text-resort-muted">{m.label}</span>
+                  <span style={{fontSize:12,color:"#8A7E6A"}}>{m.label}</span>
                   <span style={{fontSize:16,fontWeight:800,color:m.col}}>{m.val}</span>
                 </div>
               ))}
@@ -219,13 +264,13 @@ export default function StaffDashboard() {
                   const bCol = BOOKING_COLOR[b.bookingStatus]||"#6B6054"
                   return (
                     <DivRow key={b._id||i}>
-                      <div className="flex items-center gap-3">
-                        <div style={{width:32,height:32,borderRadius:8,background:"rgba(201,168,76,.1)",border:"1px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:C.gold}}>
+                      <div style={{display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{width:32,height:32,borderRadius:8,background:"rgba(201,168,76,.1)",border:"1px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:C.gold,flexShrink:0}}>
                           {(name[0]||"G").toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-cream">{name}</p>
-                          <p className="text-xs text-resort-dim">
+                          <p style={{fontSize:13,fontWeight:600,color:"#F5ECD7",margin:0}}>{name}</p>
+                          <p style={{fontSize:11,color:"#6B6054",margin:0}}>
                             {b.room?`Room #${b.room.room_number}`:"—"} · {b.roomType?.type_name||"—"}
                           </p>
                         </div>
@@ -242,28 +287,28 @@ export default function StaffDashboard() {
           <div className="card-p anim-up d4">
             <SectionTitle title="Recent Bookings" count={bookings.length} accent={C.blue}/>
             {recentB.length===0
-              ? <p className="text-resort-dim text-sm text-center py-6">No bookings yet</p>
+              ? <p style={{fontSize:13,color:"#6B6054",textAlign:"center",padding:"24px 0"}}>No bookings yet</p>
               : recentB.map((b,i)=>{
                 const name   = b.customer?.name||"Guest"
                 const bCol   = BOOKING_COLOR[b.bookingStatus]||"#6B6054"
                 const isPaid = b.paymentStatus==="Paid"
                 return (
                   <DivRow key={b._id||i}>
-                    <div className="flex items-center gap-3">
-                      <div style={{width:34,height:34,borderRadius:8,background:"rgba(82,148,224,.1)",border:"1px solid rgba(82,148,224,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:C.blue}}>
+                    <div style={{display:"flex",alignItems:"center",gap:12}}>
+                      <div style={{width:34,height:34,borderRadius:8,background:"rgba(82,148,224,.1)",border:"1px solid rgba(82,148,224,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:C.blue,flexShrink:0}}>
                         {(name[0]||"G").toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-cream">{name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <p style={{fontSize:13,fontWeight:600,color:"#F5ECD7",margin:0}}>{name}</p>
+                        <div style={{display:"flex",alignItems:"center",gap:8,marginTop:3}}>
                           <Chip label={b.bookingStatus} color={bCol}/>
                           <Chip label={b.paymentStatus} color={isPaid?C.green:C.amber}/>
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold" style={{color:C.teal}}>{fmtINR(b.totalAmount||0)}</p>
-                      <p className="text-xs text-resort-dim mt-0.5">{fmtDate(b.checkInDateTime)} → {fmtDate(b.checkOutDateTime)}</p>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <p style={{fontSize:13,fontWeight:600,color:C.teal,margin:0}}>{fmtINR(b.totalAmount||0)}</p>
+                      <p style={{fontSize:11,color:"#6B6054",marginTop:3}}>{fmtDate(b.checkInDateTime)} → {fmtDate(b.checkOutDateTime)}</p>
                     </div>
                   </DivRow>
                 )
@@ -272,8 +317,15 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        {/* Right col */}
-        <div className="space-y-5">
+        {/*
+          Right panel:
+          - xl (≥1280px): stacked vertically in the 1/3 column
+          - sm–xl (640–1279px): side by side 50/50 to fill horizontal space
+          - mobile (<640px): stacked vertically full width
+        */}
+        <div style={rightInner}>
+
+          {/* Room Status */}
           <div className="card-p anim-up d3">
             <SectionTitle title="Room Status" accent={C.amber}/>
             <Bar label="Available"   count={avail}  total={rooms.length} color={C.green} />
@@ -289,22 +341,24 @@ export default function StaffDashboard() {
             )}
           </div>
 
+          {/* Today's Revenue */}
           <div className="card-p anim-up d4">
             <SectionTitle title="Today's Revenue" accent={C.gold}/>
-            <div className="space-y-3">
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
               {[
-                {label:"Today's Revenue", val:fmtINR(todayRev),  col:C.teal  },
-                {label:"Today's Pending", val:fmtINR(todayDue),  col:C.amber },
-                {label:"Paid Today",      val:todayPaid,         col:C.green },
-                {label:"Partial Today",   val:todayPartial,      col:C.blue  },
+                {label:"Today's Revenue", val:fmtINR(todayRev), col:C.teal  },
+                {label:"Today's Pending", val:fmtINR(todayDue), col:C.amber },
+                {label:"Paid Today",      val:todayPaid,        col:C.green },
+                {label:"Partial Today",   val:todayPartial,     col:C.blue  },
               ].map((m,i)=>(
                 <div key={i} style={{padding:"11px 14px",borderRadius:10,background:`${m.col}10`,border:`1px solid ${m.col}1A`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span className="text-xs text-resort-muted">{m.label}</span>
+                  <span style={{fontSize:12,color:"#8A7E6A"}}>{m.label}</span>
                   <span style={{fontSize:16,fontWeight:800,color:m.col}}>{m.val}</span>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </div>

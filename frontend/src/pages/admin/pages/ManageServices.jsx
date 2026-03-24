@@ -1,8 +1,4 @@
 // src/pages/admin/pages/ManageServices.jsx
-// ─────────────────────────────────────────────
-// Full services catalog management.
-// Data persists via localStorage (no backend endpoint for services).
-// ─────────────────────────────────────────────
 import React, { useState, useEffect } from "react"
 import Button from "../../../components/ui/Button"
 import Modal  from "../../../components/ui/Modal"
@@ -13,28 +9,28 @@ const CATEGORIES = ["Dining", "Spa & Wellness", "Laundry", "Transport", "Room Se
 const STATUSES   = ["Active", "Inactive", "Coming Soon"]
 
 const CAT_ICON = {
-  "Dining":        "🍽",
+  "Dining":         "🍽",
   "Spa & Wellness": "💆",
-  "Laundry":       "👕",
-  "Transport":     "🚗",
-  "Room Service":  "🛎",
-  "Activities":    "🎯",
-  "Business":      "💼",
-  "Other":         "✦",
+  "Laundry":        "👕",
+  "Transport":      "🚗",
+  "Room Service":   "🛎",
+  "Activities":     "🎯",
+  "Business":       "💼",
+  "Other":          "✦",
 }
 const CAT_COLOR = {
-  "Dining":        "#E0A852",
+  "Dining":         "#E0A852",
   "Spa & Wellness": "#9B7FE8",
-  "Laundry":       "#5294E0",
-  "Transport":     "#52C07A",
-  "Room Service":  "#C9A84C",
-  "Activities":    "#E05252",
-  "Business":      "#4ECDC4",
-  "Other":         "#6B6054",
+  "Laundry":        "#5294E0",
+  "Transport":      "#52C07A",
+  "Room Service":   "#C9A84C",
+  "Activities":     "#E05252",
+  "Business":       "#4ECDC4",
+  "Other":          "#6B6054",
 }
 const STATUS_COLOR = {
-  Active:       "#52C07A",
-  Inactive:     "#E05252",
+  Active:        "#52C07A",
+  Inactive:      "#E05252",
   "Coming Soon": "#E0A852",
 }
 
@@ -51,11 +47,11 @@ const emptyForm = {
 }
 
 export default function ManageServices() {
-  const [services, setServicesState] = useState([])
-  const [search,   setSearch]  = useState("")
-  const [catFilter, setCatFilter] = useState("All")
-  const [modal,    setModal]   = useState(null)
-  const [form,     setForm]    = useState(emptyForm)
+  const [services,  setServicesState] = useState([])
+  const [search,    setSearch]        = useState("")
+  const [catFilter, setCatFilter]     = useState("All")
+  const [modal,     setModal]         = useState(null)
+  const [form,      setForm]          = useState(emptyForm)
   const { toast, show } = useToast()
 
   useEffect(() => { setServicesState(loadServices()) }, [])
@@ -164,15 +160,12 @@ export default function ManageServices() {
             return (
               <div key={svc.id} className={`card-p anim-up d${Math.min(i + 1, 5)}`} style={{ position: "relative" }}>
                 <div className="stat-bar" style={{ background: color }} />
-
-                {/* Status toggle */}
                 <div style={{ position: "absolute", top: 12, right: 12 }}>
                   <button onClick={() => toggleStatus(svc.id)}
                     style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: `${sColor}15`, color: sColor, border: `1px solid ${sColor}25`, cursor: "pointer" }}>
                     {svc.status}
                   </button>
                 </div>
-
                 <div className="flex items-start gap-3 mb-3 mt-1">
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: `${color}15`, border: `1px solid ${color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
                     {icon}
@@ -184,28 +177,21 @@ export default function ManageServices() {
                     </span>
                   </div>
                 </div>
-
                 {svc.description && (
                   <p className="text-xs text-resort-dim leading-relaxed mb-3"
                     style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                     {svc.description}
                   </p>
                 )}
-
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    {svc.price ? (
-                      <span className="font-bold text-lg" style={{ color }}>₹{Number(svc.price).toLocaleString("en-IN")}</span>
-                    ) : (
-                      <span className="text-resort-dim text-sm">Price on request</span>
-                    )}
+                    {svc.price
+                      ? <span className="font-bold text-lg" style={{ color }}>₹{Number(svc.price).toLocaleString("en-IN")}</span>
+                      : <span className="text-resort-dim text-sm">Price on request</span>}
                     {svc.unit && <span className="text-xs text-resort-dim ml-1">{svc.unit}</span>}
                   </div>
-                  {svc.availability && (
-                    <span style={{ fontSize: 10, color: "#8A7E6A" }}>🕐 {svc.availability}</span>
-                  )}
+                  {svc.availability && <span style={{ fontSize: 10, color: "#8A7E6A" }}>🕐 {svc.availability}</span>}
                 </div>
-
                 <div className="flex gap-2 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,.05)" }}>
                   <Button size="xs" variant="outline" onClick={() => openEdit(svc)} className="flex-1">Edit</Button>
                   <Button size="xs" variant="danger"  onClick={() => remove(svc.id)}>Remove</Button>
@@ -230,13 +216,17 @@ export default function ManageServices() {
         }
       >
         <form onSubmit={save} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Service Name" placeholder="e.g. Spa Treatment" value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })} required />
             <Input label="Icon (emoji)" placeholder="💆" value={form.icon}
               onChange={e => setForm({ ...form, icon: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Category"
               options={CATEGORIES.map(c => ({ value: c, label: c }))}
               value={form.category}
@@ -246,12 +236,15 @@ export default function ManageServices() {
               value={form.status}
               onChange={e => setForm({ ...form, status: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Price (₹)" type="number" placeholder="0 for price on request" value={form.price}
               onChange={e => setForm({ ...form, price: e.target.value })} />
             <Input label="Price Unit" placeholder="per person / per session" value={form.unit}
               onChange={e => setForm({ ...form, unit: e.target.value })} />
           </div>
+
           <Input label="Availability" placeholder="24/7 / 9 AM – 9 PM" value={form.availability}
             onChange={e => setForm({ ...form, availability: e.target.value })} />
           <Input label="Description" rows={3} placeholder="Brief description of this service…"

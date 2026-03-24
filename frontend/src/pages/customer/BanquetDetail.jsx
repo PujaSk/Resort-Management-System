@@ -1,4 +1,5 @@
 // src/pages/customer/BanquetDetail.jsx
+// Fully responsive — stacks to 1 col on mobile, 5-col grid on desktop
 import React, { useState, useEffect, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getRoomTypeById } from "../../services/roomService"
@@ -11,12 +12,7 @@ import {
   amenityIcon, PaymentPanel, BookingSuccessScreen,
 } from "./bookingShared"
 import { IconBed } from "./RoomList"
-import { CalendarIcon, GuestIcon } from "../../components/ui/Icons"; 
-
-
-
-
-
+import { CalendarIcon, GuestIcon } from "../../components/ui/Icons"
 
 export const IconSparkle = ({ size = 14, color = "#C9A84C" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -25,16 +21,15 @@ export const IconSparkle = ({ size = 14, color = "#C9A84C" }) => (
   </svg>
 )
 
-
 /* ── Hall calendar styles (injected once) ── */
 if (typeof document !== "undefined" && !document.getElementById("banquet-cal-style")) {
   const s = document.createElement("style")
   s.id = "banquet-cal-style"
   s.textContent = `
-    .bcal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .bcal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:clamp(2px,0.5vw,4px); }
     .bcal-day {
       aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-      border-radius:8px; font-size:12px; font-weight:600;
+      border-radius:8px; font-size:clamp(10px,1.5vw,12px); font-weight:600;
       cursor:pointer; transition:all .15s;
       border:1px solid transparent; user-select:none;
     }
@@ -45,12 +40,22 @@ if (typeof document !== "undefined" && !document.getElementById("banquet-cal-sty
     .bcal-day.selected  { background:rgba(201,168,76,.22); color:#C9A84C; border-color:rgba(201,168,76,.5); }
     .bcal-day.maxed     { color:rgba(255,255,255,.15); cursor:not-allowed; }
     .bcal-day.empty     { cursor:default; }
+
+    /* Responsive layout */
+    .bd-wrap { max-width: 1200px; margin: 0 auto; padding: clamp(32px,5vw,56px) clamp(16px,4vw,40px) clamp(48px,6vw,80px); }
+    .bd-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
+    @media (min-width: 1024px) { .bd-grid { grid-template-columns: 3fr 2fr; gap: 40px; } }
+    .bd-panel-sticky { position: static; }
+    @media (min-width: 1024px) { .bd-panel-sticky { position: sticky; top: 24px; } }
+    .bd-hero-img { height: clamp(220px, 40vw, 384px); }
+    .bd-thumbs { display:flex; gap:8px; padding:10px; overflow-x:auto; }
+    .bd-thumb  { height:clamp(44px,7vw,56px); width:clamp(60px,9vw,80px); border-radius:8px; overflow:hidden; flex-shrink:0; }
   `
   document.head.appendChild(s)
 }
 
 /* ══════════════════════════════════════════════
-   CALENDAR — pick N specific dates
+   CALENDAR
 ══════════════════════════════════════════════ */
 function BanquetCalendar({ daysNeeded, selectedDates, onToggle, blockedDates }) {
   const today = new Date(); today.setHours(0,0,0,0)
@@ -84,7 +89,7 @@ function BanquetCalendar({ daysNeeded, selectedDates, onToggle, blockedDates }) 
       <div className="bcal-grid mb-1">
         {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
           <div key={d} className="bcal-day empty"
-            style={{ color:"rgba(201,168,76,.5)", fontSize:"10px", fontWeight:700 }}>{d}</div>
+            style={{ color:"rgba(201,168,76,.5)", fontSize:"clamp(8px,1.2vw,10px)", fontWeight:700 }}>{d}</div>
         ))}
       </div>
 
@@ -106,12 +111,9 @@ function BanquetCalendar({ daysNeeded, selectedDates, onToggle, blockedDates }) 
           else                cls += "available"
 
           const clickable = !isPast && !isBlocked && (!isMaxed || isSel)
-
           return (
             <div key={ymd} className={cls} title={isBlocked ? "Already booked" : undefined}
-              onClick={() => clickable && onToggle(ymd)}>
-              {d}
-            </div>
+              onClick={() => clickable && onToggle(ymd)}>{d}</div>
           )
         })}
       </div>
@@ -164,20 +166,14 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
     if (selectedDates.length < daysNeeded)
       return setError(`Please select ${daysNeeded} date${daysNeeded !== 1 ? "s" : ""} on the calendar.`)
     const data = {
-      isHall: true,
-      daysNeeded,
-      selectedDates,
-      hallDates: selectedDates,          // ← used by BookingSuccessScreen
-      daysBooked: daysNeeded,            // ← used by BookingSuccessScreen
+      isHall: true, daysNeeded, selectedDates, hallDates: selectedDates,
+      daysBooked: daysNeeded,
       checkIn:  selectedDates[0],
       checkOut: selectedDates[selectedDates.length - 1],
-      nights:   daysNeeded,
-      totalAmount,
-      pricePerNight: pricePerDay,
+      nights:   daysNeeded, totalAmount, pricePerNight: pricePerDay,
       adults: 0, children: 0,
     }
-    onSave(data)
-    onProceed(data)
+    onSave(data); onProceed(data)
   }
 
   const remaining = daysNeeded - selectedDates.length
@@ -186,7 +182,7 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
     <div className="space-y-5">
       <div className="flex items-end justify-between pb-4" style={{ borderBottom:"1px solid rgba(255,255,255,.07)" }}>
         <div>
-          <span className="text-gold font-bold text-3xl font-display">₹{fmt(pricePerDay)}</span>
+          <span className="text-gold font-bold font-display" style={{ fontSize:"clamp(22px,4vw,30px)" }}>₹{fmt(pricePerDay)}</span>
           <span className="text-resort-dim text-sm ml-1">/ day</span>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
@@ -217,7 +213,7 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
               <input type="number" min={1} max={30} value={daysNeeded}
                 onChange={e => handleDaysChange(e.target.value)}
                 className="f-input text-center font-bold text-cream text-lg w-20"
-                style={{ MozAppearance:"textfield" }} />
+                style={{ MozAppearance:"textfield" }}/>
               <button onClick={() => handleDaysChange(daysNeeded + 1)}
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-gold font-bold text-xl hover:bg-gold/10 transition"
                 style={{ border:"1px solid rgba(201,168,76,.25)" }}>+</button>
@@ -225,33 +221,17 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
             </div>
           </div>
 
-         <div
-            className="rounded-lg px-3 py-2.5"
-            style={{
-              background: "rgba(201,168,76,.05)",
-              border: "1px solid rgba(201,168,76,.15)"
-            }}
-          >
+          <div className="rounded-lg px-3 py-2.5"
+            style={{ background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.15)" }}>
             <div className="flex items-center gap-1 text-gold font-semibold text-[11px] mb-0.5">
-              <CalendarIcon size={16} />
-              <span>
-                Select {daysNeeded} date{daysNeeded !== 1 ? "s" : ""} from the calendar
-              </span>
+              <CalendarIcon size={14}/>
+              <span>Select {daysNeeded} date{daysNeeded !== 1 ? "s" : ""} from the calendar</span>
             </div>
-
             <p className="text-resort-muted text-[11px]">
               {selectedDates.length} / {daysNeeded} selected
               {selectedDates.length > 0 && (
                 <span className="ml-1">
-                  —{" "}
-                  {selectedDates
-                    .map((d) =>
-                      parseLocalDate(d).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short"
-                      })
-                    )
-                    .join(", ")}
+                  — {selectedDates.map(d => parseLocalDate(d).toLocaleDateString("en-IN", { day:"numeric", month:"short" })).join(", ")}
                 </span>
               )}
             </p>
@@ -259,12 +239,8 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
 
           <div className="rounded-xl p-4"
             style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.07)" }}>
-            <BanquetCalendar
-              daysNeeded={daysNeeded}
-              selectedDates={selectedDates}
-              onToggle={toggleDate}
-              blockedDates={blockedDates}
-            />
+            <BanquetCalendar daysNeeded={daysNeeded} selectedDates={selectedDates}
+              onToggle={toggleDate} blockedDates={blockedDates}/>
           </div>
 
           {selectedDates.length === daysNeeded && (
@@ -276,8 +252,7 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
               </div>
               <div className="flex justify-between font-semibold text-cream pt-1.5"
                 style={{ borderTop:"1px solid rgba(201,168,76,.12)" }}>
-                <span>Total</span>
-                <span className="text-gold">₹{fmt(totalAmount)}</span>
+                <span>Total</span><span className="text-gold">₹{fmt(totalAmount)}</span>
               </div>
             </div>
           )}
@@ -305,17 +280,8 @@ function BanquetBookingPanel({ venue, user, navigate, blockedDates, savedData, o
    ICONS
 ══════════════════════════════════════════════ */
 export const InfoIcon = ({ size = 18, color = "#C9A84C" }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+    fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <g>
       <path d="M10.363 3.591L2.257 17.125a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87L13.637 3.59a1.914 1.914 0 0 0-3.274 0M12 9h.01"/>
       <path d="M11 12h1v4h1"/>
@@ -331,19 +297,17 @@ export default function BanquetDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [venue,         setVenue]         = useState(null)
-  const [loading,       setLoading]       = useState(true)
-  const [activeImg,     setActiveImg]     = useState(0)
-  const [bookedRanges,  setBookedRanges]  = useState([])
-  const [totalRooms,    setTotalRooms]    = useState(0)
-
-  // steps: "details" → "payment" → "done"
-  const [step,          setStep]          = useState("details")
-  const [bookingData,   setBookingData]   = useState(null)
-  const [savedPayment,  setSavedPayment]  = useState(null)
-  const [confirmedPayment, setConfirmedPayment] = useState(null)  // ← stores what was charged
-  const [submitting,    setSubmitting]    = useState(false)
-  const [apiError,      setApiError]      = useState("")
+  const [venue,            setVenue]            = useState(null)
+  const [loading,          setLoading]          = useState(true)
+  const [activeImg,        setActiveImg]        = useState(0)
+  const [bookedRanges,     setBookedRanges]     = useState([])
+  const [totalRooms,       setTotalRooms]       = useState(0)
+  const [step,             setStep]             = useState("details")
+  const [bookingData,      setBookingData]      = useState(null)
+  const [savedPayment,     setSavedPayment]     = useState(null)
+  const [confirmedPayment, setConfirmedPayment] = useState(null)
+  const [submitting,       setSubmitting]       = useState(false)
+  const [apiError,         setApiError]         = useState("")
 
   const blockedDates = useMemo(
     () => computeFullyBlockedDates(bookedRanges, totalRooms),
@@ -362,37 +326,26 @@ export default function BanquetDetail() {
     setApiError(""); setSubmitting(true)
     try {
       const sorted = [...bookingData.selectedDates].sort()
-
       const checkInDt  = parseLocalDate(sorted[0])
       const checkOutDt = new Date(parseLocalDate(sorted[0]))
       checkOutDt.setDate(checkOutDt.getDate() + 1)
-
       await createBooking({
-        customer: user?._id || user?.id,
-        roomType: id,
+        customer: user?._id || user?.id, roomType: id,
         adults: 0, children: 0, guests: [],
         checkInDateTime:  checkInDt.toISOString(),
         checkOutDateTime: checkOutDt.toISOString(),
         amountPaid,
-        paymentDetails: {
-          ...paymentDetails,
-          hallDates:       sorted,
-          daysBooked:      bookingData.daysNeeded,
-          isNonContiguous: true,
-        },
+        paymentDetails: { ...paymentDetails, hallDates:sorted, daysBooked:bookingData.daysNeeded, isNonContiguous:true },
       })
-      // Save payment info so success screen can display it
       setConfirmedPayment({ amountPaid, paymentDetails })
       setStep("done")
     } catch (e) {
       setApiError(e?.response?.data?.message || "Booking failed. Please try again.")
-    } finally {
-      setSubmitting(false)
-    }
+    } finally { setSubmitting(false) }
   }
 
-  if (loading) return <Loader text="Loading venue details…" />
-  if (!venue)  return (
+  if (loading) return <Loader text="Loading venue details…"/>
+  if (!venue) return (
     <div className="text-center py-32 text-resort-dim">
       <div className="text-6xl mb-4">🏛</div>
       <p className="text-cream text-xl mb-2">Venue not found</p>
@@ -401,54 +354,32 @@ export default function BanquetDetail() {
     </div>
   )
 
-  /* ── SUCCESS SCREEN ── */
   if (step === "done") return (
-    <div style={{
-      position:"fixed", inset:0, overflowY:"auto",
-      background:"#0E0C09", zIndex:50,
-      display:"flex", alignItems:"flex-start", justifyContent:"center",
-      padding:"24px 16px",
-    }}>
-      <div style={{
-        width:"100%", maxWidth:"440px", margin:"auto",
-        background:"#161410",
-        border:"1px solid rgba(201,168,76,.22)",
-        borderRadius:"20px", padding:"28px 24px",
-        boxShadow:"0 32px 80px rgba(0,0,0,.7)",
-      }}>
+    <div style={{ position:"fixed", inset:0, overflowY:"auto", background:"#0E0C09", zIndex:50,
+      display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"24px 16px" }}>
+      <div style={{ width:"100%", maxWidth:"440px", margin:"auto", background:"#161410",
+        border:"1px solid rgba(201,168,76,.22)", borderRadius:"20px",
+        padding:"clamp(18px,4vw,28px) clamp(16px,4vw,24px)",
+        boxShadow:"0 32px 80px rgba(0,0,0,.7)" }}>
         <BookingSuccessScreen
-          bookingData={{
-            ...bookingData,
-            isHall: true,
-            hallDates:  bookingData.selectedDates,
-            daysBooked: bookingData.daysNeeded,
-            pricePerNight: venue?.price_per_night,
-          }}
-          paymentData={confirmedPayment}
-          roomType={venue}
-          room={null}
+          bookingData={{ ...bookingData, isHall:true,
+            hallDates:bookingData.selectedDates, daysBooked:bookingData.daysNeeded,
+            pricePerNight:venue?.price_per_night }}
+          paymentData={confirmedPayment} roomType={venue} room={null}
           onDone={() => navigate("/bookings")}
         />
-
-        {/* Hall-specific bonus: suggest room bookings for guests */}
-        <div style={{
-          marginTop:16, borderRadius:12, padding:"14px 16px",
-          background:"rgba(201,168,76,.07)", border:"1px solid rgba(201,168,76,.22)",
-        }}>
+        <div style={{ marginTop:16, borderRadius:12, padding:"14px 16px",
+          background:"rgba(201,168,76,.07)", border:"1px solid rgba(201,168,76,.22)" }}>
           <p className="flex items-center gap-1 text-[13px] font-bold text-[#C9A84C] mb-1">
-            <IconBed size={18} />
-            &nbsp; Where will your guests stay?
+            <IconBed size={18}/>&nbsp; Where will your guests stay?
           </p>
           <p style={{ color:"rgba(255,255,255,.4)", fontSize:"11.5px", lineHeight:1.6, marginBottom:10 }}>
             You've reserved the hall — don't forget accommodation for your guests!
           </p>
-          <button onClick={() => navigate("/rooms")} style={{
-            width:"100%",
-            background:"linear-gradient(135deg,#C9A84C,#ddb94e)",
-            color:"#0E0C09", border:"none", cursor:"pointer",
-            padding:"10px 20px", borderRadius:"10px",
-            fontWeight:700, fontSize:"13px",
-          }}>
+          <button onClick={() => navigate("/rooms")} style={{ width:"100%",
+            background:"linear-gradient(135deg,#C9A84C,#ddb94e)", color:"#0E0C09",
+            border:"none", cursor:"pointer", padding:"10px 20px", borderRadius:"10px",
+            fontWeight:700, fontSize:"13px" }}>
             Browse &amp; Book Rooms for Guests →
           </button>
         </div>
@@ -461,36 +392,38 @@ export default function BanquetDetail() {
   const stepIndex = { details:0, payment:1 }[step] ?? 0
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-10 py-14">
+    <div className="bd-wrap">
       <button onClick={() => navigate(-1)}
-        className="text-resort-muted hover:text-gold text-sm flex items-center gap-1.5 mb-8 transition group">
+        className="text-resort-muted hover:text-gold text-sm flex items-center gap-1.5 transition group"
+        style={{ marginBottom:"clamp(20px,4vw,32px)" }}>
         <span className="group-hover:-translate-x-1 transition">←</span> Back
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+      <div className="bd-grid">
 
-        {/* LEFT — venue info */}
-        <div className="lg:col-span-3 space-y-8 anim-up">
+        {/* ── LEFT — venue info ── */}
+        <div className="space-y-6 anim-up">
           <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,.07)" }}>
-            <div className="h-72 md:h-96 overflow-hidden relative bg-[#1A1710]">
+            <div className="bd-hero-img overflow-hidden relative bg-[#1A1710]">
               {images.length > 0
                 ? <img src={`http://localhost:5000/${images[activeImg]}`} alt={venue.type_name}
-                    className="w-full h-full object-cover transition duration-500" />
-                : <div className="h-full flex items-center justify-center text-7xl"
-                    style={{ color:"rgba(201,168,76,.2)" }}>🏛</div>
+                    className="w-full h-full object-cover transition duration-500"/>
+                : <div className="h-full flex items-center justify-center"
+                    style={{ color:"rgba(201,168,76,.2)", fontSize:"clamp(48px,10vw,72px)" }}>🏛</div>
               }
               <div className="absolute inset-0 pointer-events-none"
                 style={{ background:"linear-gradient(to top, rgba(14,12,9,.6) 0%, transparent 60%)" }}/>
-              <div className="absolute bottom-5 left-5">
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-cream drop-shadow">{venue.type_name}</h1>
+              <div className="absolute bottom-4 left-4">
+                <h1 className="font-display font-bold text-cream drop-shadow"
+                  style={{ fontSize:"clamp(18px,4vw,28px)" }}>{venue.type_name}</h1>
                 <p className="text-gold/80 text-sm mt-0.5">🏛 Banquet &amp; Event Venue</p>
               </div>
             </div>
             {images.length > 1 && (
-              <div className="flex gap-2 p-3" style={{ background:"#12100D" }}>
+              <div className="bd-thumbs" style={{ background:"#12100D" }}>
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
-                    className={`h-14 w-20 rounded-lg overflow-hidden flex-shrink-0 transition border-2 ${i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
+                    className={`bd-thumb flex-shrink-0 transition border-2 ${i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
                     <img src={`http://localhost:5000/${img}`} alt="" className="w-full h-full object-cover"/>
                   </button>
                 ))}
@@ -499,29 +432,33 @@ export default function BanquetDetail() {
           </div>
 
           {venue.description && (
-            <div className="card p-6">
+            <div className="card">
               <h3 className="font-display text-base font-semibold text-cream mb-3 flex items-center gap-2">
-                <span className="text-gold"> <IconSparkle/> </span> About This Venue
+                <span className="text-gold"><IconSparkle/></span> About This Venue
               </h3>
               <p className="text-resort-muted text-sm leading-relaxed">{venue.description}</p>
             </div>
           )}
 
           {venue.capacity && (
-            <div className="card p-6">
+            <div className="card">
               <h3 className="font-display text-base font-semibold text-cream mb-3 flex items-center gap-2">
-                <span className="text-gold"> <GuestIcon/> </span> Capacity
+                <span className="text-gold"><GuestIcon/></span> Capacity
               </h3>
-              <p className="text-resort-muted text-sm">Up to <span className="text-gold font-semibold">{venue.capacity} guests</span></p>
+              <p className="text-resort-muted text-sm">
+                Up to <span className="text-gold font-semibold">{venue.capacity} guests</span>
+              </p>
             </div>
           )}
 
           {venue.amenities?.length > 0 && (
-            <div className="card p-6">
+            <div className="card">
               <h3 className="font-display text-base font-semibold text-cream mb-4 flex items-center gap-2">
-                <span className="text-gold"> <IconSparkle/> </span> Amenities &amp; Features
+                <span className="text-gold"><IconSparkle/></span> Amenities &amp; Features
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* Responsive amenity grid */}
+              <div style={{ display:"grid",
+                gridTemplateColumns:"repeat(auto-fill, minmax(clamp(120px,25%,180px), 1fr))", gap:12 }}>
                 {venue.amenities.map(a => (
                   <div key={a} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-resort-muted"
                     style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.06)" }}>
@@ -533,10 +470,10 @@ export default function BanquetDetail() {
           )}
         </div>
 
-        {/* RIGHT — booking panel */}
-        <div className="lg:col-span-2 anim-up d2">
-          <div className="sticky top-6">
-            <div className="card p-6" style={{ border:"1px solid rgba(201,168,76,.18)" }}>
+        {/* ── RIGHT — booking panel ── */}
+        <div className="anim-up d2">
+          <div className="bd-panel-sticky">
+            <div className="card" style={{ border:"1px solid rgba(201,168,76,.18)" }}>
 
               {step !== "details" && (
                 <div className="flex items-center gap-1 mb-5">
@@ -560,21 +497,15 @@ export default function BanquetDetail() {
               )}
 
               {step === "details" && (
-                <BanquetBookingPanel
-                  venue={venue} user={user} navigate={navigate}
-                  blockedDates={blockedDates}
-                  savedData={bookingData} onSave={setBookingData}
-                  onProceed={data => { setBookingData(data); setStep("payment") }}
-                />
+                <BanquetBookingPanel venue={venue} user={user} navigate={navigate}
+                  blockedDates={blockedDates} savedData={bookingData} onSave={setBookingData}
+                  onProceed={data => { setBookingData(data); setStep("payment") }}/>
               )}
               {step === "payment" && (
-                <PaymentPanel
-                  room={venue} bookingData={bookingData}
+                <PaymentPanel room={venue} bookingData={bookingData}
                   savedPayment={savedPayment} onSave={setSavedPayment}
                   onBack={() => setStep("details")}
-                  onConfirm={handleConfirm}
-                  submitting={submitting} error={apiError}
-                />
+                  onConfirm={handleConfirm} submitting={submitting} error={apiError}/>
               )}
 
             </div>

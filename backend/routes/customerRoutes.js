@@ -10,6 +10,7 @@ const {
   adminSendOtp,
   adminVerifyOtp,
   registerWalkin,
+  getAllCustomers,          // ADD THIS
 } = require("../controllers/customerController");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
@@ -25,5 +26,8 @@ router.put("/profile", protect, updateProfile);
 router.post("/admin-send-otp",   protect, authorizeRoles("admin", "staff"), adminSendOtp);
 router.post("/admin-verify-otp", protect, authorizeRoles("admin", "staff"), adminVerifyOtp);
 router.post("/register-walkin",  protect, authorizeRoles("admin", "staff"), registerWalkin);
+
+// Admin + Staff — list all customers         ← ADD THIS ROUTE
+router.get("/", protect, authorizeRoles("admin", "staff"), getAllCustomers)
 
 module.exports = router;

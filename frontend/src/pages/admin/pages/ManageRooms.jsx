@@ -32,7 +32,6 @@ const ALLOWED_TRANSITIONS = {
 }
 
 const emptyGen = { roomTypeId:"", floor:"", startNumber:"", endNumber:"" }
-const IST    = { timeZone:"Asia/Kolkata" }
 const fmtINR = n => n ? `₹${Number(n).toLocaleString("en-IN")}` : "₹0"
 
 function Pill({ label, color="#C9A84C" }) {
@@ -44,37 +43,22 @@ function Pill({ label, color="#C9A84C" }) {
   )
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Derive the real live status for a room from active bookings.
-   Priority: Checked-In > Booked (future) > DB status
-   This means the table always reflects what's actually happening
-   today, not just what's stored on the Room document.
-───────────────────────────────────────────────────────────── */
 function getLiveStatus(room, bookings) {
-  const rid = room._id?.toString()
+  const rid   = room._id?.toString()
   const today = new Date(); today.setHours(0,0,0,0)
-
-  // Guest is physically in the room right now
-  const active = bookings.find(b =>
-    b.room?._id?.toString() === rid && b.bookingStatus === "Checked-In"
-  )
+  const active = bookings.find(b => b.room?._id?.toString() === rid && b.bookingStatus === "Checked-In")
   if (active) return "Occupied"
-
-  // Room has a confirmed future or today booking
   const upcoming = bookings.find(b =>
     b.room?._id?.toString() === rid &&
     b.bookingStatus === "Booked" &&
     new Date(b.checkInDateTime) >= today
   )
   if (upcoming) return "Booked"
-
-  // Fall back to whatever is stored on the Room document
   return room.status
 }
 
 export default function ManageRooms() {
   const navigate = useNavigate()
-
   const [rooms,     setRooms]     = useState([])
   const [types,     setTypes]     = useState([])
   const [bookings,  setBookings]  = useState([])
@@ -125,7 +109,6 @@ export default function ManageRooms() {
     catch { show("Failed","error") }
   }
 
-  // Attach a computed liveStatus to every room
   const enriched = rooms.map(r => ({ ...r, liveStatus: getLiveStatus(r, bookings) }))
 
   const filtered = enriched.filter(r => {
@@ -151,15 +134,19 @@ export default function ManageRooms() {
       render:v=><span className="text-resort-muted">Floor {v}</span> },
     { key:"roomType", label:"Type",
       render:v=><span className="text-cream text-sm">{v?.type_name||"—"}</span> },
-    { key:"roomType", label:"Price/Night",
-      render:v=>v?.price_per_night ? <span className="font-semibold text-cream">{fmtINR(v.price_per_night)}</span> : "—" },
-    { key:"roomType", label:"Beds",
-      render:v=>v?.beds?.length
-        ? <div className="flex gap-1 flex-wrap">{v.beds.map((b,i)=><Pill key={i} label={`${b.count}× ${b.type}`} color="#4ECDC4"/>)}</div>
+    // FIX: key changed from "roomType" (duplicate) to "price" to avoid React key warnings
+    { key:"price", label:"Price/Night",
+      render:(_,row)=>row.roomType?.price_per_night
+        ? <span className="font-semibold text-cream">{fmtINR(row.roomType.price_per_night)}</span>
+        : "—" },
+    // FIX: key changed from "roomType" (duplicate) to "beds" to avoid React key warnings
+    { key:"beds", label:"Beds",
+      render:(_,row)=>row.roomType?.beds?.length
+        ? <div className="flex gap-1 flex-wrap">{row.roomType.beds.map((b,i)=><Pill key={i} label={`${b.count}× ${b.type}`} color="#4ECDC4"/>)}</div>
         : <span className="text-resort-dim">—</span> },
-    /* ── Live status derived from bookings ── */
     { key:"liveStatus", label:"Status", render:v=><Badge label={v} variant={v}/> },
-    { key:"_id", label:"Actions",
+    // FIX: key changed from "_id" (duplicate — _id already used internally) to "actions"
+    { key:"actions", label:"Actions",
       render:(_,row)=>(
         <div className="flex gap-2" onClick={e=>e.stopPropagation()}>
           <Button size="xs" variant="gold" onClick={()=>navigate(`/admin/room-bookings/${row._id}`)}>View</Button>
@@ -297,6 +284,7 @@ export default function ManageRooms() {
         </div>
       )}
 
+      {/* Generate Modal */}
       <Modal open={genOpen} onClose={()=>setGenOpen(false)}
         title={<span style={{display:"flex",alignItems:"center",gap:8}}><GenerateIcon size={22} color="#C9A84C"/> Generate Rooms</span>}
         subtitle="Bulk create rooms for a floor"
@@ -311,10 +299,13 @@ export default function ManageRooms() {
               setGenForm(prev=>({...prev, floor}))
               if (floor) { try { const res = await getNextRoomNumber(floor); setGenForm(prev=>({...prev, floor, startNumber:res.data.nextNumber})) } catch {} }
             }} required/>
-          <div className="grid grid-cols-2 gap-3">
+
+          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
+          <div className="form-grid-2">
             <Input label="Start Room #" type="number" placeholder="101" value={genForm.startNumber} onChange={e=>setGenForm({...genForm,startNumber:e.target.value})} required/>
             <Input label="End Room #" type="number" placeholder="110" value={genForm.endNumber} onChange={e=>setGenForm({...genForm,endNumber:e.target.value})} required/>
           </div>
+
           {genForm.startNumber && genForm.endNumber && +genForm.endNumber>=+genForm.startNumber && (
             <div className="px-4 py-3 rounded-xl text-sm font-semibold text-gold"
               style={{background:"rgba(201,168,76,.08)",border:"1px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",gap:8}}>
@@ -325,6 +316,7 @@ export default function ManageRooms() {
         </form>
       </Modal>
 
+      {/* Status Modal */}
       <Modal open={!!statusRow} onClose={()=>setStatusRow(null)}
         title={`Room #${statusRow?.room_number}`} subtitle="Change room status"
         footer={<Button variant="ghost" onClick={()=>setStatusRow(null)}>Cancel</Button>}>

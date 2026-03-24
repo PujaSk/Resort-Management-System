@@ -22,15 +22,16 @@ const CloseIcon = () => (
 )
 
 const NAV_LINKS = [
-  { to: "/",         label: "Home",        end: true },
-  { to: "/rooms",    label: "Rooms" },
-  { to: "/bookings", label: "My Bookings" },
-  { to: "/profile",  label: "Profile" },
+  { to: "/",            label: "Home",        end: true },
+  { to: "/rooms",       label: "Rooms" },
+  { to: "/facilities",  label: "Facilities" },
+  { to: "/bookings",    label: "My Bookings" },
+  { to: "/profile",     label: "Profile" },
 ]
 
 export default function CustomerLayout() {
   const { user, logout } = useAuth()
-  const { pathname } = useLocation()
+  const { pathname }     = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   // Close mobile menu on route change
@@ -56,17 +57,23 @@ export default function CustomerLayout() {
         }}
       >
         {/* Brand */}
-        <NavLink to="/" className="font-display text-lg sm:text-xl font-bold gold-text flex items-center gap-2 no-underline">
+        <NavLink
+          to="/"
+          className="font-display text-lg sm:text-xl font-bold gold-text flex items-center gap-2 no-underline flex-shrink-0"
+        >
           <CrownIcon size={26} />
-          <span className="hidden xs:block">Royal Palace Resort</span>
-          <span className="xs:hidden">Royal Palace</span>
+          {/* Short name on tiny screens, full name on sm+ */}
+          <span className="hidden xs:block sm:block">Royal Palace Resort</span>
+          <span className="xs:hidden sm:hidden">Royal Palace</span>
         </NavLink>
 
-        {/* Desktop nav */}
+        {/* Desktop nav (md+) */}
         <nav className="hidden md:flex items-center gap-1">
           {NAV_LINKS.map(l => (
             <NavLink
-              key={l.to} to={l.to} end={l.end}
+              key={l.to}
+              to={l.to}
+              end={l.end}
               className={({ isActive }) =>
                 `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive
@@ -78,6 +85,7 @@ export default function CustomerLayout() {
               {l.label}
             </NavLink>
           ))}
+
           {user ? (
             <button
               onClick={logout}
@@ -96,9 +104,9 @@ export default function CustomerLayout() {
           )}
         </nav>
 
-        {/* Mobile hamburger */}
+        {/* Mobile hamburger button (below md) */}
         <button
-          className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg"
+          className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0"
           style={{
             background: "rgba(201,168,76,.08)",
             border: "1px solid rgba(201,168,76,.2)",
@@ -112,32 +120,42 @@ export default function CustomerLayout() {
       </header>
 
       {/* ════ MOBILE MENU DRAWER ════ */}
-      {/* Backdrop */}
+
+      {/* Backdrop — tapping it closes the menu */}
       {mobileOpen && (
         <div
           className="md:hidden fixed inset-0 z-40"
-          style={{ background: "rgba(0,0,0,.6)", backdropFilter: "blur(4px)", top: "64px" }}
+          style={{
+            background: "rgba(0,0,0,.6)",
+            backdropFilter: "blur(4px)",
+            top: "64px",
+          }}
           onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
         />
       )}
 
-      {/* Drawer panel — drops down from header */}
+      {/* Drawer panel — slides down from below the header */}
       <div
         className="md:hidden fixed left-0 right-0 z-40"
         style={{
           top: "64px",
           background: "rgba(10,8,5,.97)",
           backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           borderBottom: "1px solid rgba(201,168,76,.15)",
           transform: mobileOpen ? "translateY(0)" : "translateY(-110%)",
           transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
           boxShadow: "0 8px 40px rgba(0,0,0,.5)",
         }}
+        aria-hidden={!mobileOpen}
       >
         <nav className="flex flex-col p-4 gap-1">
           {NAV_LINKS.map(l => (
             <NavLink
-              key={l.to} to={l.to} end={l.end}
+              key={l.to}
+              to={l.to}
+              end={l.end}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
                   isActive
@@ -150,7 +168,8 @@ export default function CustomerLayout() {
             </NavLink>
           ))}
 
-          <div style={{ height: "1px", background: "rgba(255,255,255,.05)", margin: "4px 0" }}/>
+          {/* Divider */}
+          <div style={{ height: "1px", background: "rgba(255,255,255,.05)", margin: "4px 0" }} />
 
           {user ? (
             <button
