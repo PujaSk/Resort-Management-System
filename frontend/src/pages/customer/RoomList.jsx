@@ -110,7 +110,7 @@ function RoomCard({ type, index, onBook }) {
       <div style={{ height:"clamp(160px, 22vw, 192px)", overflow:"hidden" }}>
         {type.images?.length > 0 ? (
           <img
-            src={`http://localhost:5000/${type.images[0]}`}
+            src={`http://resort-management-system.onrender.com/${type.images[0]}`}
             alt={type.type_name}
             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
           />

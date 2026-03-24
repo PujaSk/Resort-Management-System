@@ -229,7 +229,7 @@ export default function Register() {
   const handleSendOtp = async (e) => {
     e.preventDefault(); setError(""); setLoading(true)
     try {
-      await axios.post("http://localhost:5000/api/customer/send-otp", { email:form.email })
+      await axios.post("http://resort-management-system.onrender.com/api/customer/send-otp", { email:form.email })
       setStep(1); setCountdown(60)
     } catch (err) { setError(err.response?.data?.message || "Failed to send OTP") }
     finally { setLoading(false) }
@@ -239,7 +239,7 @@ export default function Register() {
     if (countdown > 0) return
     setError(""); setLoading(true)
     try {
-      await axios.post("http://localhost:5000/api/customer/send-otp", { email:form.email })
+      await axios.post("http://resort-management-system.onrender.com/api/customer/send-otp", { email:form.email })
       setOtp(""); setCountdown(60); showToast("Verification code resent to your inbox")
     } catch (err) { setError(err.response?.data?.message || "Resend failed") }
     finally { setLoading(false) }
@@ -250,7 +250,7 @@ export default function Register() {
     if (otp.length !== 6) { setError("Please enter the complete 6-digit code"); return }
     setError(""); setLoading(true)
     try {
-      const res = await axios.post("http://localhost:5000/api/customer/verify-otp", { ...form, otp })
+      const res = await axios.post("http://resort-management-system.onrender.com/api/customer/verify-otp", { ...form, otp })
       localStorage.setItem("token", res.data.token)
       localStorage.setItem("role", res.data.role)
       localStorage.setItem("name", res.data.name)

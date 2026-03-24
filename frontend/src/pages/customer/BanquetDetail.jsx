@@ -406,7 +406,7 @@ export default function BanquetDetail() {
           <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,.07)" }}>
             <div className="bd-hero-img overflow-hidden relative bg-[#1A1710]">
               {images.length > 0
-                ? <img src={`http://localhost:5000/${images[activeImg]}`} alt={venue.type_name}
+                ? <img src={`http://resort-management-system.onrender.com/${images[activeImg]}`} alt={venue.type_name}
                     className="w-full h-full object-cover transition duration-500"/>
                 : <div className="h-full flex items-center justify-center"
                     style={{ color:"rgba(201,168,76,.2)", fontSize:"clamp(48px,10vw,72px)" }}>🏛</div>
@@ -424,7 +424,7 @@ export default function BanquetDetail() {
                 {images.map((img, i) => (
                   <button key={i} onClick={() => setActiveImg(i)}
                     className={`bd-thumb flex-shrink-0 transition border-2 ${i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
-                    <img src={`http://localhost:5000/${img}`} alt="" className="w-full h-full object-cover"/>
+                    <img src={`http://resort-management-system.onrender.com/${img}`} alt="" className="w-full h-full object-cover"/>
                   </button>
                 ))}
               </div>
