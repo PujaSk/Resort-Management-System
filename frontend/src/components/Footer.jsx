@@ -2,6 +2,7 @@
 // Responsive — single-column on mobile, 4-column grid on desktop
 import React from "react"
 import { Link } from "react-router-dom"
+// import { CrownIcon } from "./ui/Crown"
 
 const C = { gold:"#C9A84C", cream:"#F5ECD7", dim:"#6B6054", muted:"#8A7E6A" }
 
@@ -64,7 +65,7 @@ export default function Footer() {
     <footer style={{ background:"#0A0804", borderTop:"1px solid rgba(201,168,76,.12)", marginTop:"auto" }}>
 
       {/* Top CTA strip */}
-      <div style={{
+      {/* <div style={{
         background:"linear-gradient(135deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.04) 100%)",
         borderBottom:"1px solid rgba(201,168,76,.1)",
         padding:"28px 20px",
@@ -88,7 +89,7 @@ export default function Footer() {
         }}>
           Book a Room <Icons.ChevronR />
         </Link>
-      </div>
+      </div> */}
 
       {/* Main grid — stacks to 1 col on mobile, 2 col on md, 4 col on lg */}
       <div style={{

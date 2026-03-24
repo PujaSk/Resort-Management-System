@@ -1,9 +1,9 @@
 // src/components/Sidebar.jsx
-// Fully responsive — fixed sidebar on desktop, slide-in drawer on mobile
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { NavLink, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import CrownIcon from "../components/ui/Crown"
+import { BroomIcon } from "../components/ui/Icons"
 
 /* ══════════════════════════════════════
    SVG ICONS
@@ -36,14 +36,15 @@ const IC = {
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
   ),
-  Housekeeping: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 22l4-4"/>
-      <path d="M7 18l9-9"/>
-      <path d="M14 3l7 7-2 2-7-7 2-2z"/>
-      <path d="M5 16l3 3"/>
-    </svg>
-  ),
+  // Housekeeping: () => (
+  //   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+  //     <path d="M3 22l4-4"/>
+  //     <path d="M7 18l9-9"/>
+  //     <path d="M14 3l7 7-2 2-7-7 2-2z"/>
+  //     <path d="M5 16l3 3"/>
+  //   </svg>
+  // ),
+  Housekeeping: () => <BroomIcon size={16}/>,
   Booking: () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -96,51 +97,70 @@ const IC = {
       <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   ),
+  Logout: () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  ),
 }
 
 const ADMIN_NAV = [
-  { section:"Overview", items:[
-    { to:"/admin/dashboard",    Icon:IC.Dashboard,    label:"Dashboard" },
+  { section: "Overview", items: [
+    { to: "/admin/dashboard",       Icon: IC.Dashboard,    label: "Dashboard" },
   ]},
-  { section:"Rooms & Facilities", items:[
-    { to:"/admin/manage-rooms",    Icon:IC.Rooms,        label:"Manage Rooms" },
-    { to:"/admin/room-settings",   Icon:IC.Settings,     label:"Room Settings" },
-    { to:"/admin/room-facilities", Icon:IC.Facilities,   label:"Facilities" },
-    { to:"/admin/housekeeping",    Icon:IC.Housekeeping, label:"House Keeping" },
+  { section: "Rooms & Facilities", items: [
+    { to: "/admin/manage-rooms",    Icon: IC.Rooms,        label: "Manage Rooms" },
+    { to: "/admin/room-settings",   Icon: IC.Settings,     label: "Room Settings" },
+    { to: "/admin/room-facilities", Icon: IC.Facilities,   label: "Facilities" },
+    { to: "/admin/housekeeping",    Icon: IC.Housekeeping, label: "House Keeping" },
   ]},
-  { section:"Bookings", items:[
-    { to:"/admin/room-booking",    Icon:IC.Booking,      label:"Room Booking" },
+  { section: "Bookings", items: [
+    { to: "/admin/room-booking",    Icon: IC.Booking,      label: "Room Booking" },
   ]},
-  { section:"People", items:[
-    { to:"/admin/manage-customer", Icon:IC.Customer,     label:"Manage Customer" },
-    { to:"/admin/manage-staff",    Icon:IC.Staff,        label:"Manage Staff" },
+  { section: "People", items: [
+    { to: "/admin/manage-customer", Icon: IC.Customer,     label: "Manage Customer" },
+    { to: "/admin/manage-staff",    Icon: IC.Staff,        label: "Manage Staff" },
   ]},
-  { section:"Finance", items:[
-    { to:"/admin/transaction",     Icon:IC.Transaction,  label:"Transaction" },
-    { to:"/admin/reports",         Icon:IC.Reports,      label:"Reports" },
+  { section: "Finance", items: [
+    { to: "/admin/transaction",     Icon: IC.Transaction,  label: "Transaction" },
+    { to: "/admin/reports",         Icon: IC.Reports,      label: "Reports" },
   ]},
-  { section:"Account", items:[
-    { to:"/admin/profile",         Icon:IC.Profile,      label:"My Profile" },
+  { section: "Account", items: [
+    { to: "/admin/profile",         Icon: IC.Profile,      label: "My Profile" },
   ]},
 ]
 
 const STAFF_NAV = [
-  { section:"Overview", items:[
-    { to:"/staff/dashboard",       Icon:IC.Dashboard,    label:"Dashboard" },
+  { section: "Overview", items: [
+    { to: "/staff/dashboard",       Icon: IC.Dashboard,    label: "Dashboard" },
   ]},
-  { section:"Rooms", items:[
-    { to:"/staff/housekeeping",    Icon:IC.Housekeeping, label:"House Keeping" },
+  { section: "Rooms", items: [
+    { to: "/staff/housekeeping",    Icon: IC.Housekeeping, label: "House Keeping" },
   ]},
-  { section:"Bookings", items:[
-    { to:"/staff/room-booking",    Icon:IC.Booking,      label:"Room Booking" },
+  { section: "Bookings", items: [
+    { to: "/staff/room-booking",    Icon: IC.Booking,      label: "Room Booking" },
   ]},
-  { section:"People", items:[
-    { to:"/staff/manage-customer", Icon:IC.Customer,     label:"Manage Customer" },
+  { section: "People", items: [
+    { to: "/staff/manage-customer", Icon: IC.Customer,     label: "Manage Customer" },
   ]},
-  { section:"Account", items:[
-    { to:"/staff/profile",         Icon:IC.Profile,      label:"My Profile" },
+  { section: "Account", items: [
+    { to: "/staff/profile",         Icon: IC.Profile,      label: "My Profile" },
   ]},
 ]
+
+/* ── Hook: detect if viewport is desktop (≥1024px) ── */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024)
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)")
+    const handler = (e) => setIsDesktop(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+  return isDesktop
+}
 
 /* ══════════════════════════════════════
    SIDEBAR INNER CONTENT
@@ -149,33 +169,42 @@ function SidebarContent({ role, nav, user, onNavigate, onLogout }) {
   return (
     <>
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5" style={{ borderBottom:"1px solid rgba(255,255,255,.05)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl white-btn flex items-center justify-center text-resort-bg text-lg font-bold flex-shrink-0">
+      <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid rgba(255,255,255,.05)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 12,
+            background: "rgba(201,168,76,.12)", border: "1px solid rgba(201,168,76,.2)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
             <CrownIcon size={30}/>
           </div>
-          <div>
-            <p className="font-display text-base font-bold leading-tight" style={{color:"#c9a96e"}}>Royal Palace Resort</p>
-            <p className="text-[10px] text-gold uppercase tracking-widest capitalize">{role} panel</p>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 14, fontWeight: 700, color: "#c9a96e", margin: 0, lineHeight: 1.2 }}>
+              Royal Palace Resort
+            </p>
+            <p style={{ fontSize: 10, color: "#C9A84C", textTransform: "capitalize", letterSpacing: "0.12em", margin: "2px 0 0" }}>
+              {role} panel
+            </p>
           </div>
         </div>
       </div>
 
       {/* Nav sections */}
-      <nav className="flex-1 px-3 py-3 overflow-y-auto">
+      <nav style={{ flex: 1, padding: "12px", overflowY: "auto" }}>
         {nav.map(sec => (
-          <div key={sec.section} className="mb-1">
-            <p className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color:"#3e352a" }}>
+          <div key={sec.section} style={{ marginBottom: 4 }}>
+            <p style={{ padding: "8px 12px", fontSize: 9, fontWeight: 700, color: "#3e352a", textTransform: "uppercase", letterSpacing: "0.12em", margin: 0 }}>
               {sec.section}
             </p>
             {sec.items.map(({ to, Icon, label }) => (
-              <NavLink key={to} to={to}
+              <NavLink
+                key={to}
+                to={to}
                 onClick={onNavigate}
-                className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}>
-                <span className="w-5 flex items-center justify-center flex-shrink-0">
-                  <Icon/>
-                </span>
-                <span className="text-sm">{label}</span>
+                className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+              >
+                <span style={{ width: 20, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon /></span>
+                <span style={{ fontSize: 14 }}>{label}</span>
               </NavLink>
             ))}
           </div>
@@ -183,25 +212,37 @@ function SidebarContent({ role, nav, user, onNavigate, onLogout }) {
       </nav>
 
       {/* User footer */}
-      <div className="px-4 pb-4 pt-3" style={{ borderTop:"1px solid rgba(255,255,255,.05)" }}>
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background:"rgba(255,255,255,.03)" }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-gold flex-shrink-0"
-            style={{ background:"rgba(201,168,76,.1)", border:"1px solid rgba(201,168,76,.25)" }}>
+      <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,.05)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,.03)" }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, fontWeight: 700, color: "#C9A84C",
+            background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.25)",
+          }}>
             {(user?.staff_name || user?.name)?.[0]?.toUpperCase() || "A"}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-cream truncate">{user?.staff_name || user?.name || "Admin"}</p>
-            <p className="text-[10px] text-resort-dim capitalize">{user?.designation || user?.role || role}</p>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#F5ECD7", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {user?.staff_name || user?.name || "Admin"}
+            </p>
+            <p style={{ fontSize: 10, color: "#6B6054", margin: "1px 0 0", textTransform: "capitalize" }}>
+              {user?.designation || user?.role || role}
+            </p>
           </div>
-          <button onClick={onLogout} title="Logout"
-            style={{ background:"none", border:"none", cursor:"pointer", color:"#6B6054", padding:"4px", borderRadius:6, display:"flex", alignItems:"center" }}
-            onMouseEnter={e => e.currentTarget.style.color="#E05252"}
-            onMouseLeave={e => e.currentTarget.style.color="#6B6054"}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
+          <button
+            onClick={onLogout}
+            title="Logout"
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "#6B6054", padding: "4px", borderRadius: 6,
+              display: "flex", alignItems: "center", flexShrink: 0,
+              transition: "color .15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "#E05252"}
+            onMouseLeave={e => e.currentTarget.style.color = "#6B6054"}
+          >
+            <IC.Logout />
           </button>
         </div>
       </div>
@@ -211,24 +252,41 @@ function SidebarContent({ role, nav, user, onNavigate, onLogout }) {
 
 /* ══════════════════════════════════════
    EXPORTED SIDEBAR
-   - Desktop: fixed left panel (w-64)
-   - Mobile: hamburger button + slide-in drawer + backdrop
 ══════════════════════════════════════ */
-export default function Sidebar({ role="admin" }) {
+export default function Sidebar({ role = "admin" }) {
   const { logout, user } = useAuth()
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const navigate         = useNavigate()
+  const { pathname }     = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const isDesktop = useIsDesktop()
+
+  // Refs for accessibility focus management
+  const drawerRef    = useRef(null)
+  const hamburgerRef = useRef(null)
 
   const nav = role === "admin" ? ADMIN_NAV : STAFF_NAV
 
   // Close drawer on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
-  // Prevent body scroll when drawer open
+  // Lock body scroll when mobile drawer is open
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : ""
+    if (!isDesktop) {
+      document.body.style.overflow = mobileOpen ? "hidden" : ""
+    }
     return () => { document.body.style.overflow = "" }
+  }, [mobileOpen, isDesktop])
+
+  // When drawer closes: blur any focused element inside it, then
+  // return focus to the hamburger button so keyboard/screen-reader
+  // users are not left stranded inside the now-hidden drawer.
+  useEffect(() => {
+    if (!mobileOpen && drawerRef.current) {
+      const focused = drawerRef.current.querySelector(":focus")
+      if (focused) focused.blur()
+      const t = setTimeout(() => hamburgerRef.current?.focus(), 50)
+      return () => clearTimeout(t)
+    }
   }, [mobileOpen])
 
   const handleLogout = () => { logout(); navigate("/login") }
@@ -239,61 +297,116 @@ export default function Sidebar({ role="admin" }) {
     display: "flex",
     flexDirection: "column",
     height: "100%",
+    width: 256,
   }
 
-  return (
-    <>
-      {/* ── Desktop sidebar (lg+) ── */}
-      <aside
-        className="hidden lg:flex w-64 flex-shrink-0 flex-col fixed left-0 top-0 bottom-0 z-50 overflow-y-auto"
-        style={sidebarStyle}
-      >
+  /* ── DESKTOP: fixed left sidebar ── */
+  if (isDesktop) {
+    return (
+      <aside style={{
+        ...sidebarStyle,
+        position: "fixed",
+        left: 0, top: 0, bottom: 0,
+        zIndex: 50,
+        overflowY: "auto",
+      }}>
         <SidebarContent
           role={role} nav={nav} user={user}
           onNavigate={() => {}}
           onLogout={handleLogout}
         />
       </aside>
+    )
+  }
 
-      {/* ── Mobile hamburger button ── */}
+  /* ── MOBILE: hamburger + drawer overlay ── */
+  return (
+    <>
+      {/* Hamburger button — always visible on mobile */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-[60] flex items-center justify-center w-10 h-10 rounded-xl"
+        ref={hamburgerRef}
+        onClick={() => setMobileOpen(true)}
+        aria-label="Open navigation menu"
+        aria-expanded={mobileOpen}
+        aria-controls="mobile-sidebar"
         style={{
-          background: "rgba(16,14,11,0.9)",
-          border: "1px solid rgba(201,168,76,.25)",
+          position: "fixed", top: 16, left: 16, zIndex: 60,
+          width: 40, height: 40, borderRadius: 12,
+          background: "rgba(16,14,11,0.92)",
+          border: "1px solid rgba(201,168,76,.3)",
           color: "#C9A84C",
           backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer",
         }}
-        onClick={() => setMobileOpen(true)}
-        aria-label="Open menu"
       >
         <IC.Menu />
       </button>
 
-      {/* ── Mobile backdrop ── */}
+      {/* Backdrop — only rendered when open */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[55]"
-          style={{ background: "rgba(0,0,0,.65)", backdropFilter: "blur(4px)" }}
           onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+          style={{
+            position: "fixed", inset: 0, zIndex: 55,
+            background: "rgba(0,0,0,.7)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+          }}
         />
       )}
 
-      {/* ── Mobile drawer ── */}
+      {/*
+        Slide-in drawer.
+
+        FIX: replaced aria-hidden={!mobileOpen} with the inert attribute.
+
+        Why inert is better than aria-hidden here:
+        - aria-hidden only hides from the accessibility tree but focus can
+          still land inside, causing the "aria-hidden on focused ancestor"
+          browser warning.
+        - inert does everything aria-hidden does AND prevents focus from
+          ever entering the element, eliminating the warning entirely.
+        - The browser recommendation in the warning message itself says
+          "consider using the inert attribute instead".
+
+        React syntax: pass true to enable inert, undefined to remove it.
+        Passing false or an empty string both cause React warnings.
+      */}
       <aside
-        className="lg:hidden fixed left-0 top-0 bottom-0 z-[60] flex flex-col w-72 overflow-y-auto"
+        id="mobile-sidebar"
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+        inert={!mobileOpen ? true : undefined}
         style={{
           ...sidebarStyle,
+          position: "fixed",
+          left: 0, top: 0, bottom: 0,
+          zIndex: 60,
+          width: 288,
+          overflowY: "auto",
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
-          boxShadow: mobileOpen ? "4px 0 40px rgba(0,0,0,.6)" : "none",
+          boxShadow: mobileOpen ? "6px 0 48px rgba(0,0,0,.7)" : "none",
         }}
       >
-        {/* Close button inside drawer */}
+        {/* Close button */}
         <button
           onClick={() => setMobileOpen(false)}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg"
-          style={{ background: "rgba(255,255,255,.06)", color: "#6B6054", border: "none", cursor: "pointer" }}
+          aria-label="Close menu"
+          style={{
+            position: "absolute", top: 12, right: 12,
+            width: 32, height: 32, borderRadius: 8,
+            background: "rgba(255,255,255,.06)",
+            border: "1px solid rgba(255,255,255,.1)",
+            color: "#6B6054", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 1,
+          }}
           onMouseEnter={e => e.currentTarget.style.color = "#E05252"}
           onMouseLeave={e => e.currentTarget.style.color = "#6B6054"}
         >

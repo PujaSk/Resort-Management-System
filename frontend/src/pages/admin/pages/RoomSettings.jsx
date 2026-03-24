@@ -1,11 +1,10 @@
 // src/pages/admin/pages/RoomSettings.jsx
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { getRoomTypes, createRoomType, updateRoomType, deleteRoomType } from "../../../services/roomService"
 import Button from "../../../components/ui/Button"
 import Modal  from "../../../components/ui/Modal"
 import Input  from "../../../components/ui/Input"
 import { Toast, useToast } from "../../../components/ui/Loader"
-import { useRef } from "react"
 import {
   IconBed, GuestIcon,
   IconCheck, IconWarning,
@@ -13,33 +12,24 @@ import {
 } from "../../../components/ui/Icons"
 import { AmenityBadge, AmenityIcon } from "../../../components/ui/AmenityIcon"
 
-/* ─── Amenities list — plain text labels, icons auto-resolved ─── */
 const AMENITIES_LIST = [
-  "AC",
-  "TV",
-  "High Speed WiFi",
-  "Complimentary Breakfast",
-  "Coffee Maker",
-  "Mini Fridge",
-  "Jacuzzi",
-  "Safe / Locker",
-  "Gym",
-  "Swimming Pool",
-  "Game Zone",
+  "AC", "TV", "High Speed WiFi", "Complimentary Breakfast",
+  "Coffee Maker", "Mini Fridge", "Jacuzzi", "Safe / Locker",
+  "Gym", "Swimming Pool", "Game Zone",
 ]
 
 const BED_TYPES = ["Single", "Double"]
 
 const fieldStyle = {
-  background:        "rgba(255,255,255,0.04)",
-  border:            "1px solid rgba(255,255,255,0.1)",
-  borderRadius:      "8px",
-  color:             "#e8d5b0",
-  padding:           "6px 10px",
-  outline:           "none",
-  fontSize:          "13px",
-  appearance:        "none",
-  WebkitAppearance:  "none",
+  background:       "rgba(255,255,255,0.04)",
+  border:           "1px solid rgba(255,255,255,0.1)",
+  borderRadius:     "8px",
+  color:            "#e8d5b0",
+  padding:          "6px 10px",
+  outline:          "none",
+  fontSize:         "13px",
+  appearance:       "none",
+  WebkitAppearance: "none",
 }
 
 const AutoSlider = ({ images }) => {
@@ -165,80 +155,74 @@ export default function RoomSettings() {
         <Button variant="gold" onClick={openCreate} icon={<PlusIcon size={14} color="#0E0C09"/>}>New Room Type</Button>
       </div>
 
-      {loading
-        ? <div className="grid grid-cols-3 gap-4">
-            {[1,2,3].map(i => <div key={i} className="card-p"><div className="h-32 skeleton rounded-xl"/></div>)}
+      {loading ? (
+        /* FIX: was "grid grid-cols-3 gap-4" — hardcoded 3-col breaks on mobile */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="card-p"><div className="h-32 skeleton rounded-xl"/></div>)}
+        </div>
+      ) : types.length === 0 ? (
+        <div className="card-p text-center py-14 anim-up">
+          <div className="flex justify-center mb-4">
+            <IconBed size={48} color="rgba(201,168,76,.2)"/>
           </div>
-        : types.length === 0
-          ? <div className="card-p text-center py-14 anim-up">
-              <div className="flex justify-center mb-4">
-                <IconBed size={48} color="rgba(201,168,76,.2)"/>
+          <p className="text-resort-dim">No room types yet. Create one to get started!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-up d1">
+          {types.map((t, i) => (
+            <div key={t._id} className={`card-p anim-up d${Math.min(i+1,5)}`}
+              style={{ display:"flex", flexDirection:"column" }}>
+              {t.images?.length > 0 && <AutoSlider images={t.images}/>}
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="font-display text-xl font-semibold text-cream">{t.type_name}</h3>
+                <span className="font-bold text-gold text-lg">₹{t.price_per_night?.toLocaleString()}</span>
               </div>
-              <p className="text-resort-dim">No room types yet. Create one to get started!</p>
-            </div>
-          : <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-up d1">
-              {types.map((t, i) => (
-                <div key={t._id} className={`card-p anim-up d${Math.min(i+1,5)}`}
-                  style={{ display:"flex", flexDirection:"column" }}>
-
-                  {t.images?.length > 0 && <AutoSlider images={t.images}/>}
-
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-display text-xl font-semibold text-cream">{t.type_name}</h3>
-                    <span className="font-bold text-gold text-lg">₹{t.price_per_night?.toLocaleString()}</span>
-                  </div>
-
-                  {/* Capacity + Beds */}
-                  <div className="flex flex-col gap-1 text-resort-muted text-sm mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <GuestIcon size={15}/>
-                      <span>Capacity: {t.capacity} guests</span>
-                    </div>
-                    {t.beds?.length > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <IconBed size={15}/>
-                        <span>{t.beds.map(b => `${b.count} ${b.type}`).join(", ")}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {t.description && (
-                    <p className="text-resort-dim text-xs leading-relaxed mb-3" style={{
-                      display:"-webkit-box", WebkitLineClamp:3,
-                      WebkitBoxOrient:"vertical", overflow:"hidden",
-                    }}>{t.description}</p>
-                  )}
-
-                  {/* Amenities — icon badges (show first 4, then +N) */}
-                  {t.amenities?.length > 0 && (
-                    <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
-                      {t.amenities.slice(0, 4).map((a, ai) => (
-                        <AmenityBadge key={ai} name={a} size={13} fontSize={11}/>
-                      ))}
-                      {t.amenities.length > 4 && (
-                        <span style={{
-                          display:"inline-flex", alignItems:"center",
-                          padding:"5px 10px", borderRadius:20, fontSize:11,
-                          color:"#6B6054", background:"rgba(255,255,255,.04)",
-                          border:"1px solid rgba(255,255,255,.08)",
-                        }}>
-                          +{t.amenities.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-3"
-                    style={{ marginTop:"auto", borderTop:"1px solid rgba(255,255,255,.05)" }}>
-                    <Button size="xs" variant="outline" onClick={() => openEdit(t)} className="flex-1">Edit</Button>
-                    <Button size="xs" variant="danger"  onClick={() => remove(t._id)}>Delete</Button>
-                  </div>
+              <div className="flex flex-col gap-1 text-resort-muted text-sm mb-2">
+                <div className="flex items-center gap-1.5">
+                  <GuestIcon size={15}/>
+                  <span>Capacity: {t.capacity} guests</span>
                 </div>
-              ))}
+                {t.beds?.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <IconBed size={15}/>
+                    <span>{t.beds.map(b => `${b.count} ${b.type}`).join(", ")}</span>
+                  </div>
+                )}
+              </div>
+              {t.description && (
+                <p className="text-resort-dim text-xs leading-relaxed mb-3" style={{
+                  display:"-webkit-box", WebkitLineClamp:3,
+                  WebkitBoxOrient:"vertical", overflow:"hidden",
+                }}>{t.description}</p>
+              )}
+              {t.amenities?.length > 0 && (
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
+                  {t.amenities.slice(0, 4).map((a, ai) => (
+                    <AmenityBadge key={ai} name={a} size={13} fontSize={11}/>
+                  ))}
+                  {t.amenities.length > 4 && (
+                    <span style={{
+                      display:"inline-flex", alignItems:"center",
+                      padding:"5px 10px", borderRadius:20, fontSize:11,
+                      color:"#6B6054", background:"rgba(255,255,255,.04)",
+                      border:"1px solid rgba(255,255,255,.08)",
+                    }}>
+                      +{t.amenities.length - 4} more
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className="flex gap-2 pt-3"
+                style={{ marginTop:"auto", borderTop:"1px solid rgba(255,255,255,.05)" }}>
+                <Button size="xs" variant="outline" onClick={() => openEdit(t)} className="flex-1">Edit</Button>
+                <Button size="xs" variant="danger"  onClick={() => remove(t._id)}>Delete</Button>
+              </div>
             </div>
-      }
+          ))}
+        </div>
+      )}
 
-      {/* ══════════ MODAL ══════════ */}
+      {/* Modal */}
       <Modal
         open={!!modal}
         onClose={() => setModal(null)}
@@ -259,23 +243,19 @@ export default function RoomSettings() {
       >
         <form onSubmit={save} className="space-y-4">
 
-          {/* Type Name */}
           <Input label="Type Name" placeholder="Deluxe, Suite, Presidential…"
             value={form.type_name} ref={nameRef}
             onChange={e => { setForm({...form, type_name:e.target.value}); if(e.target.value.trim()) clearError("type_name") }}
             style={{ border: errors.type_name ? "1px solid red" : "" }}/>
           {errors.type_name && <p className="text-red-500 text-xs mt-1">{errors.type_name}</p>}
 
-          {/* Price */}
-          <div className="grid grid-cols-1 gap-3">
-            <Input label="Price / Night (₹)" type="number" placeholder="₹5000"
-              value={form.price_per_night} ref={priceRef}
-              onChange={e => { setForm({...form, price_per_night:e.target.value}); if(e.target.value > 0) clearError("price_per_night") }}
-              style={{ border: errors.price_per_night ? "1px solid red" : "" }}/>
-            {errors.price_per_night && <p className="text-red-500 text-xs mt-1">{errors.price_per_night}</p>}
-          </div>
+          <Input label="Price / Night (₹)" type="number" placeholder="₹5000"
+            value={form.price_per_night} ref={priceRef}
+            onChange={e => { setForm({...form, price_per_night:e.target.value}); if(e.target.value > 0) clearError("price_per_night") }}
+            style={{ border: errors.price_per_night ? "1px solid red" : "" }}/>
+          {errors.price_per_night && <p className="text-red-500 text-xs mt-1">{errors.price_per_night}</p>}
 
-          {/* Beds Configuration */}
+          {/* Beds */}
           <div>
             <label className="block mb-2 text-sm font-medium text-cream">Beds Configuration</label>
             <div className="space-y-2 mb-2">
@@ -286,9 +266,7 @@ export default function RoomSettings() {
                     <select value={bed.type} onChange={e => updateBed(i, "type", e.target.value)}
                       style={{ ...fieldStyle, width:"100%", paddingRight:"28px", cursor:"pointer" }}>
                       {BED_TYPES.map(t => (
-                        <option key={t} value={t} style={{ background:"#12121e", color:"#e8d5b0" }}>
-                          {t} Bed
-                        </option>
+                        <option key={t} value={t} style={{ background:"#12121e", color:"#e8d5b0" }}>{t} Bed</option>
                       ))}
                     </select>
                     <span style={{ position:"absolute", right:"8px", top:"50%", transform:"translateY(-50%)",
@@ -324,26 +302,24 @@ export default function RoomSettings() {
             </button>
           </div>
 
-          {/* Capacity */}
-          <div className="grid grid-cols-1 gap-3">
-            <Input label="Capacity (guests)" type="number" placeholder="2"
-              value={form.capacity} ref={capacityRef}
-              onChange={e => { setForm({...form, capacity:e.target.value}); if(e.target.value > 0) clearError("capacity") }}
-              style={{ border: errors.capacity ? "1px solid red" : "" }}/>
-            {errors.capacity && <p className="text-red-500 text-xs mt-1">{errors.capacity}</p>}
-          </div>
+          <Input label="Capacity (guests)" type="number" placeholder="2"
+            value={form.capacity} ref={capacityRef}
+            onChange={e => { setForm({...form, capacity:e.target.value}); if(e.target.value > 0) clearError("capacity") }}
+            style={{ border: errors.capacity ? "1px solid red" : "" }}/>
+          {errors.capacity && <p className="text-red-500 text-xs mt-1">{errors.capacity}</p>}
 
-          {/* Amenities — custom gold checkboxes with icons */}
+          {/* Amenities */}
           <div>
             <label className="block mb-2 text-sm font-medium text-cream">Amenities</label>
-            <div className="grid grid-cols-2 gap-2">
+            {/* FIX: was "grid grid-cols-2 gap-2" — Tailwind JIT unreliable inside modals.
+                Using form-grid-2 from index.css: 1-col mobile → 2-col at 640px */}
+            <div className="form-grid-2">
               {AMENITIES_LIST.map(item => {
                 const checked = form.amenities.includes(item)
                 return (
                   <label key={item}
                     className="flex items-center gap-2 text-sm text-resort-muted cursor-pointer select-none"
                     style={{ userSelect:"none" }}>
-                    {/* Hidden native checkbox */}
                     <input type="checkbox" checked={checked}
                       onChange={e => {
                         const updated = e.target.checked
@@ -353,7 +329,6 @@ export default function RoomSettings() {
                         if (updated.length >= 2) clearError("amenities")
                       }}
                       style={{ position:"absolute", opacity:0, width:0, height:0 }}/>
-                    {/* Gold checkbox */}
                     <span style={{
                       flexShrink:0, width:"16px", height:"16px", borderRadius:"4px",
                       border: checked ? "1.5px solid #c9a84c" : "1.5px solid rgba(255,255,255,0.2)",
@@ -368,7 +343,6 @@ export default function RoomSettings() {
                         </svg>
                       )}
                     </span>
-                    {/* Icon + label */}
                     <span style={{ display:"flex", alignItems:"center", gap:5 }}>
                       <AmenityIcon name={item} size={14} color={checked ? "#C9A84C" : "#6B6054"}/>
                       {item}
@@ -380,14 +354,12 @@ export default function RoomSettings() {
             {errors.amenities && <p className="text-red-500 text-xs mt-2">{errors.amenities}</p>}
           </div>
 
-          {/* Description */}
           <Input label="Description" rows={3} placeholder="Brief description of this room type…"
             ref={descRef} value={form.description}
             onChange={e => { setForm({...form, description:e.target.value}); if(e.target.value.trim()) clearError("description") }}
             style={{ border: errors.description ? "1px solid red" : "" }}/>
           {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
 
-          {/* Images */}
           <div>
             <label className="block mb-1 text-sm font-medium text-cream">Images</label>
             <input type="file" multiple accept="image/*" className="text-resort-muted text-sm"
