@@ -18,7 +18,7 @@ import {
 } from "../../../components/ui/Icons"
 import { AmenityBadge } from "../../../components/ui/AmenityIcon"
 
-const BACKEND_URL = import.meta.env.VITE_API_URL?.replace("/api","") || "http://localhost:5000"
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace("/api","") || "http://resort-management-system.onrender.com"
 const toImgUrl = p => !p ? null : p.startsWith("http") ? p : `${BACKEND_URL}/${p.replace(/^\/+/,"")}`
 
 const STATUSES = ["Available","Booked","Occupied","Cleaning","Maintenance"]

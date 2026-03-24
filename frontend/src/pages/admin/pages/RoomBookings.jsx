@@ -10,7 +10,7 @@ import Loader from "../../../components/ui/Loader"
 import { AtBookingIcon, BookingIcon, BulbIcon, CashIcon, ClockIcon, DoorIcon, HallIcon, IconBed } from "../../../components/ui/Icons"
 import { CreditCardIcon, DebitCardIcon, UpiIcon } from "../../customer/bookingShared"
 
-const BACKEND_URL = import.meta.env.VITE_API_URL?.replace("/api","") || "http://localhost:5000"
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace("/api","") || "http://resort-management-system.onrender.com"
 const toImgUrl = p => !p ? null : p.startsWith("http") ? p : `${BACKEND_URL}/${p.replace(/^\/+/,"")}`
 
 const IST    = { timeZone:"Asia/Kolkata" }
