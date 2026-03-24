@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://resort-management-system.onrender.com"
 const toImageUrl  = p => { if (!p) return null; if (p.startsWith("http")) return p; return `${BACKEND_URL}/${p.replace(/^\/+/, "")}` }
 
 const FAC_ACCENT_CYCLE = ["#c9a96e","#a8c88a","#8ab4d4","#d4af70","#b87fff","#52C07A","#f07070","#ffb347"]
