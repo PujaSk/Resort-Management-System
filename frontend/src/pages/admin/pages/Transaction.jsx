@@ -6,7 +6,7 @@ import Loader from "../../../components/ui/Loader"
 import { Toast, useToast } from "../../../components/ui/Loader"
 import Modal from "../../../components/ui/Modal"
 import Button from "../../../components/ui/Button"
-import { RupeeIcon } from "../../../components/ui/Icons"; 
+import { RupeeIcon } from "../../../components/ui/Icons"
 
 const IST     = { timeZone: "Asia/Kolkata" }
 const fmtDate = d => d ? new Date(d).toLocaleDateString("en-IN", { ...IST, day: "2-digit", month: "short", year: "numeric" }) : "—"
@@ -32,12 +32,12 @@ const PAYMENT_LABEL = {
 }
 
 export default function Transaction() {
-  const [bookings,  setBookings]  = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [search,    setSearch]    = useState("")
+  const [bookings,     setBookings]     = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [search,       setSearch]       = useState("")
   const [statusFilter, setStatusFilter] = useState("All")
-  const [payFilter, setPayFilter] = useState("All")
-  const [selected,  setSelected]  = useState(null)
+  const [payFilter,    setPayFilter]    = useState("All")
+  const [selected,     setSelected]     = useState(null)
   const { toast, show } = useToast()
 
   const load = useCallback(async () => {
@@ -51,26 +51,21 @@ export default function Transaction() {
 
   useEffect(() => { load() }, [load])
 
-  // Stats
   const totalRevenue = bookings.filter(b => b.bookingStatus !== "Cancelled").reduce((s, b) => s + (b.amountPaid || 0), 0)
   const pendingDue   = bookings.reduce((s, b) => s + (b.amountDue || 0), 0)
   const paidCount    = bookings.filter(b => b.paymentStatus === "Paid").length
   const partialCount = bookings.filter(b => b.paymentStatus === "Partially Paid").length
 
-  // Filter
   const filtered = bookings.filter(b => {
-    const ms = statusFilter === "All" || b.bookingStatus === statusFilter
-    const mp = payFilter    === "All" || b.paymentStatus === payFilter
+    const ms   = statusFilter === "All" || b.bookingStatus === statusFilter
+    const mp   = payFilter    === "All" || b.paymentStatus === payFilter
     const name = b.customer?.name || ""
     const room = b.room?.room_number || ""
-    const mq = name.toLowerCase().includes(search.toLowerCase()) ||
-               room.toLowerCase().includes(search.toLowerCase()) ||
-               (b._id || "").includes(search)
+    const mq   = name.toLowerCase().includes(search.toLowerCase()) ||
+                 room.toLowerCase().includes(search.toLowerCase()) ||
+                 (b._id || "").includes(search)
     return ms && mp && mq
   })
-
-
-
 
   if (loading) return <Loader text="Loading transactions…" />
 
@@ -85,18 +80,18 @@ export default function Transaction() {
         </div>
       </div>
 
-      {/* KPI */}
+      {/* KPI — index.css handles grid-cols-2 lg:grid-cols-4 responsiveness */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 anim-up d1">
         {[
           { label: "Total Collected", value: fmtINR(totalRevenue), color: "#52C07A",
             Icon: ()=><RupeeIcon size={28} color="#52c07a"/> },
-            { label: "Pending Due",     value: fmtINR(pendingDue),   color: "#E0A852",
+          { label: "Pending Due",     value: fmtINR(pendingDue),   color: "#E0A852",
             Icon: ()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
           { label: "Fully Paid",      value: paidCount,            color: "#5294E0",
             Icon: ()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> },
           { label: "Partial Pay",     value: partialCount,         color: "#9B7FE8",
             Icon: ()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg> },
-        ].map((k, i) => (
+        ].map((k) => (
           <div key={k.label} className="stat-card">
             <div className="stat-bar" style={{ background: k.color }} />
             <div className="flex justify-between items-start mt-1">
@@ -152,18 +147,14 @@ export default function Transaction() {
                     <p>No transactions found</p>
                   </td>
                 </tr>
-              ) : filtered.map((b, i) => {
+              ) : filtered.map((b) => {
                 const nights = Math.round((new Date(b.checkOutDateTime) - new Date(b.checkInDateTime)) / 86400000)
                 const bCol = STATUS_COLOR[b.bookingStatus] || "#6B6054"
-                const pCol = PAY_COLOR[b.paymentStatus] || "#6B6054"
+                const pCol = PAY_COLOR[b.paymentStatus]   || "#6B6054"
                 return (
                   <tr key={b._id}
                     onClick={() => setSelected(b)}
-                    style={{
-                      borderBottom: "1px solid rgba(255,255,255,.04)",
-                      cursor: "pointer",
-                      transition: "background .15s"
-                    }}
+                    style={{ borderBottom: "1px solid rgba(255,255,255,.04)", cursor: "pointer", transition: "background .15s" }}
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,.03)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
@@ -179,9 +170,7 @@ export default function Transaction() {
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      <p style={{ fontSize: 13, color: "#C9A84C", fontWeight: 700 }}>
-                        {b.room ? `#${b.room.room_number}` : "—"}
-                      </p>
+                      <p style={{ fontSize: 13, color: "#C9A84C", fontWeight: 700 }}>{b.room ? `#${b.room.room_number}` : "—"}</p>
                       <p style={{ fontSize: 11, color: "#6B6054" }}>{b.roomType?.type_name || "—"}</p>
                     </td>
                     <td style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
@@ -200,8 +189,9 @@ export default function Transaction() {
                     <td style={{ padding: "12px 16px" }}>
                       <button
                         onClick={e => { e.stopPropagation(); setSelected(b) }}
-                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C", cursor: "pointer" }}
-                      >View</button>
+                        style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C", cursor: "pointer" }}>
+                        View
+                      </button>
                     </td>
                   </tr>
                 )
@@ -217,16 +207,13 @@ export default function Transaction() {
         onClose={() => setSelected(null)}
         title={`Booking — ${selected?.customer?.name || "Guest"}`}
         subtitle={`ID: ${selected?._id || ""}`}
-        footer={
-          <Button variant="ghost" onClick={() => setSelected(null)}>Close</Button>
-        }
+        footer={<Button variant="ghost" onClick={() => setSelected(null)}>Close</Button>}
       >
         {selected && (() => {
-          const b = selected
+          const b      = selected
           const nights = Math.round((new Date(b.checkOutDateTime) - new Date(b.checkInDateTime)) / 86400000)
-          const isPaid = b.paymentStatus === "Paid"
-          const bCol = STATUS_COLOR[b.bookingStatus] || "#6B6054"
-          const pCol = PAY_COLOR[b.paymentStatus] || "#6B6054"
+          const bCol   = STATUS_COLOR[b.bookingStatus] || "#6B6054"
+          const pCol   = PAY_COLOR[b.paymentStatus]   || "#6B6054"
           return (
             <div className="space-y-4">
               {/* Guest */}
@@ -243,18 +230,19 @@ export default function Transaction() {
                 </div>
               </div>
 
-              {/* Stay + Payment grid */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* FIX: was "grid grid-cols-2 gap-2" — Tailwind JIT unreliable inside modals.
+                  form-grid-2 from index.css: 1-col on mobile → 2-col at 640px */}
+              <div className="form-grid-2">
                 {[
-                  ["Room", b.room ? `#${b.room.room_number}` : "—"],
-                  ["Room Type", b.roomType?.type_name || "—"],
-                  ["Check-in", fmtDate(b.checkInDateTime)],
-                  ["Check-out", fmtDate(b.checkOutDateTime)],
-                  ["Duration", `${nights} night${nights !== 1 ? "s" : ""}`],
-                  ["Guests", `${b.adults || 0} adults${b.children ? `, ${b.children} children` : ""}`],
-                  ["Total Amount", fmtINR(b.totalAmount)],
-                  ["Amount Paid", fmtINR(b.amountPaid)],
-                  ["Amount Due", fmtINR(b.amountDue)],
+                  ["Room",           b.room ? `#${b.room.room_number}` : "—"],
+                  ["Room Type",      b.roomType?.type_name || "—"],
+                  ["Check-in",       fmtDate(b.checkInDateTime)],
+                  ["Check-out",      fmtDate(b.checkOutDateTime)],
+                  ["Duration",       `${nights} night${nights !== 1 ? "s" : ""}`],
+                  ["Guests",         `${b.adults || 0} adults${b.children ? `, ${b.children} children` : ""}`],
+                  ["Total Amount",   fmtINR(b.totalAmount)],
+                  ["Amount Paid",    fmtINR(b.amountPaid)],
+                  ["Amount Due",     fmtINR(b.amountDue)],
                   ["Payment Method", PAYMENT_LABEL[b.paymentDetails?.method] || b.paymentDetails?.method || "—"],
                 ].map(([label, value]) => (
                   <div key={label} style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(255,255,255,.02)", border: "1px solid rgba(255,255,255,.05)" }}>
@@ -276,7 +264,6 @@ export default function Transaction() {
                 </div>
               </div>
 
-              {/* Cancellation info */}
               {b.bookingStatus === "Cancelled" && (
                 <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(224,82,82,.08)", border: "1px solid rgba(224,82,82,.2)" }}>
                   <p style={{ fontSize: 11, color: "#E05252", marginBottom: 6, fontWeight: 600 }}>Cancellation Details</p>
@@ -284,7 +271,6 @@ export default function Transaction() {
                 </div>
               )}
 
-              {/* Feedback */}
               {b.feedback?.rating && (
                 <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.15)" }}>
                   <div className="flex items-center gap-2 mb-1">

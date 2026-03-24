@@ -189,7 +189,7 @@ function BookingRow({ booking, index, basePath, navigate }) {
       {open && (
         <tr style={{ background:"rgba(14,12,9,.4)", borderBottom:"2px solid rgba(201,168,76,.12)" }}>
           <td colSpan={8} style={{ padding:"4px 20px 24px" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginTop:16 }}>
+            <div className="rbk-expand-grid">
 
               {/* LEFT */}
               <div>
@@ -305,7 +305,7 @@ function BookingRow({ booking, index, basePath, navigate }) {
               {/* RIGHT */}
               <div>
                 <Divider label="Financial Overview"/>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:14 }}>
+                <div className="rbk-fin-grid">
                   <div style={{ padding:"12px", borderRadius:10, textAlign:"center", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.2)" }}>
                     <p style={{ fontSize:10, color:"#6B6054", marginBottom:3 }}>Total Billed</p>
                     <p style={{ fontSize:16, fontWeight:800, color:"#C9A84C", margin:0 }}>{fmtINR(totalAmt)}</p>
@@ -459,7 +459,7 @@ function MiniCalendar({ value, onChange, onClose, label }) {
     <div style={{
       position:"absolute", top:"calc(100% + 6px)", left:0, zIndex:200,
       background:"#1a1710", border:"1px solid rgba(201,168,76,.3)",
-      borderRadius:12, padding:14, minWidth:230, boxShadow:"0 16px 40px rgba(0,0,0,.6)",
+      borderRadius:12, padding:14, width:"min(260px, calc(100vw - 32px))", boxShadow:"0 16px 40px rgba(0,0,0,.6)",
     }} onClick={e=>e.stopPropagation()}>
       <p style={{fontSize:10,fontWeight:700,color:"#6B6054",textTransform:"uppercase",letterSpacing:"0.1em",margin:"0 0 10px"}}>{label}</p>
       {/* Month nav */}
@@ -482,7 +482,7 @@ function MiniCalendar({ value, onChange, onClose, label }) {
           const sel = value === ymd
           return (
             <button key={ymd} type="button" onClick={()=>{onChange(ymd);onClose()}}
-              style={{padding:"4px 2px",borderRadius:6,fontSize:11,fontWeight:sel?700:400,textAlign:"center",
+              style={{minHeight:32,padding:"4px 2px",borderRadius:6,fontSize:11,fontWeight:sel?700:400,textAlign:"center",
                 background:sel?"rgba(201,168,76,.25)":"transparent",
                 border:sel?"1px solid rgba(201,168,76,.6)":"1px solid transparent",
                 color:sel?"#C9A84C":"#C8BAA0",cursor:"pointer"}}>
