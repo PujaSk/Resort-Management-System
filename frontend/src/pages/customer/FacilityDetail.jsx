@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://resort-management-system.onrender.com"
 const toImageUrl  = p => { if (!p) return null; if (p.startsWith("http")) return p; return `${BACKEND_URL}/${p.replace(/^\/+/, "")}` }
 
 const FAC_ICONS = ["🏊","🍽","💆","🌿","🎭","✈️","🏋️","🎾","🚗","🛎","🏌️","🎯","🍷","🌊","🔥","🎨"]

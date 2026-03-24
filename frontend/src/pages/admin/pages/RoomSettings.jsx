@@ -44,7 +44,7 @@ const AutoSlider = ({ images }) => {
   return (
     <div style={{ position:"relative", height:"180px", borderRadius:"12px", overflow:"hidden", marginBottom:"12px" }}>
       {images.map((img, i) => (
-        <img key={i} src={`http://localhost:5000/${img}`} alt="room"
+        <img key={i} src={`http://resort-management-system.onrender.com/${img}`} alt="room"
           style={{ position:"absolute", width:"100%", height:"100%", objectFit:"cover",
             borderRadius:"12px", top:0, left:0,
             opacity: i === current ? 1 : 0, transition:"opacity 0.8s ease-in-out" }}/>
