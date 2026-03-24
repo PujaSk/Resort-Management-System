@@ -304,7 +304,7 @@ function HallDateRow({ item, onCancel, idx }) {
           display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column",
           gap:3, position:"relative" }}>
           {item.roomType?.images?.[0]
-            ? <img src={`http://localhost:5000/${item.roomType.images[0]}`} alt=""
+            ? <img src={`http://resort-management-system.onrender.com/${item.roomType.images[0]}`} alt=""
                 style={{ width:"100%", height:"100%", objectFit:"cover", minHeight:104, opacity: isCancelled ? .45 : 1 }}/>
             : <><span style={{ fontSize:22, opacity: isCancelled ? .4 : 1 }}>🏛</span></>
           }
@@ -427,7 +427,7 @@ function BookingCard({ booking, onCancel, idx }) {
         <div style={{ width:"clamp(64px,14vw,90px)", flexShrink:0, background: img ? "transparent" : "rgba(201,168,76,.06)",
           display:"flex", alignItems:"center", justifyContent:"center", fontSize:"clamp(22px,5vw,28px)" }}>
           {img
-            ? <img src={`http://localhost:5000/${img}`} alt=""
+            ? <img src={`http://resort-management-system.onrender.com/${img}`} alt=""
                 style={{ width:"100%", height:"100%", objectFit:"cover", minHeight:120, opacity: isCancelled ? .45 : 1 }}/>
             : "🛏"}
         </div>

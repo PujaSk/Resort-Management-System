@@ -460,7 +460,7 @@ export default function RoomDetail() {
             <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,.07)" }}>
               <div className="rd-hero-img overflow-hidden relative bg-[#1A1710]">
                 {images.length > 0
-                  ? <img src={`http://localhost:5000/${images[activeImg]}`} alt={room.type_name}
+                  ? <img src={`http://resort-management-system.onrender.com/${images[activeImg]}`} alt={room.type_name}
                       className="w-full h-full object-cover transition duration-500"/>
                   : <div className="h-full flex items-center justify-center">
                       <IconBed size={72} color="rgba(201,168,76,.2)"/>
@@ -484,7 +484,7 @@ export default function RoomDetail() {
                     <button key={i} onClick={() => setActiveImg(i)}
                       className={`rd-thumb flex-shrink-0 transition border-2 ${
                         i === activeImg ? "border-gold" : "border-transparent opacity-60 hover:opacity-90"}`}>
-                      <img src={`http://localhost:5000/${img}`} alt="" className="w-full h-full object-cover"/>
+                      <img src={`http://resort-management-system.onrender.com/${img}`} alt="" className="w-full h-full object-cover"/>
                     </button>
                   ))}
                 </div>
