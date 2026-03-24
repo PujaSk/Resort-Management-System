@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import axios from "axios"
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+const API = import.meta.env.VITE_API_URL || "http://resort-management-system.onrender.com/api"
 
 /* ── Icons ── */
 const IconMail = ({ color }) => (
