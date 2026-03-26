@@ -23,6 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# its not letting me push code to git tahts whyy
+# its not letting me push code to git that's whyy
 .env
 backend/.env
