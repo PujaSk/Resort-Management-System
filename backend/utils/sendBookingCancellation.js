@@ -1,6 +1,6 @@
 // backend/utils/sendBookingCancellation.js
 
-const sendEmail = require("./brevoSender");  // ← CHANGED
+const sendEmail = require("./brevoSender");  // ← CHANGED..
 
 const fmt     = (n) => Number(n).toLocaleString("en-IN");
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", {
