@@ -218,14 +218,14 @@ export default function Reports() {
             {[
               { label:"Booked",        color:"#5b9cf6" },
               { label:"Checked-In",    color:"#52C07A" },
-              { label:"Checked-Out",   color:"#888" },
+              { label:"Checked-Out",   color:"#9CA3AF" },
               { label:"Cancelled",     color:"#e05c5c" },
             ].map(s => {
               const count = filtered.filter(b => b.bookingStatus === s.label).length
               const pct   = filtered.length > 0 ? (count / filtered.length) * 100 : 0
               return (
                 <div key={s.label} className="rounded-xl p-4 text-center"
-                  style={{ background: `${s.color}0a`, border: `1px solid ${s.color}20` }}>
+                  style={{ background: `${s.color}12`, border: `1px solid ${s.color}40` }}>
                   <p className="font-bold text-2xl" style={{ color: s.color }}>{count}</p>
                   <p className="text-xs text-resort-muted mt-1">{s.label}</p>
                   <p className="text-xs font-semibold mt-1" style={{ color: s.color }}>{fmtPct(pct)}</p>

@@ -107,7 +107,6 @@ export default function AdminProfile() {
   const [profileForm, setProfileForm] = useState({
     name:       user?.name       || "",
     staff_name: user?.staff_name || "",
-    phoneno:    user?.phoneno    || "",
   })
   const [savingProfile, setSavingProfile] = useState(false)
   const [pwForm, setPwForm]   = useState({ currentPassword:"", newPassword:"", confirmPassword:"" })
@@ -131,13 +130,11 @@ export default function AdminProfile() {
   const handleSaveProfile = async () => {
     const displayName = isStaff ? profileForm.staff_name.trim() : profileForm.name.trim()
     if (!displayName) return show("Name cannot be empty", "error")
-    const phone = profileForm.phoneno.replace(/\s/g,"")
-    if (phone && !/^[6-9]\d{9}$/.test(phone))
-      return show("Enter a valid 10-digit Indian mobile number", "error")
+    
     setSavingProfile(true)
     try {
       const payload = {
-        phoneno: phone || undefined,
+        
         ...(isStaff ? { staff_name: displayName } : { name: displayName }),
       }
       const res = await api.put("/auth/profile", payload)
@@ -243,10 +240,10 @@ export default function AdminProfile() {
                   placeholder="Your name"
                   onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}/>
               )}
-              <Field label="Phone Number" value={profileForm.phoneno}
+              {/* <Field label="Phone Number" value={profileForm.phoneno}
                 placeholder="10-digit mobile" inputMode="numeric" maxLength={10}
                 onChange={e => setProfileForm(f => ({ ...f, phoneno: e.target.value.replace(/\D/g,"").slice(0,10) }))}
-                hint="Indian mobile number starting with 6–9"/>
+                hint="Indian mobile number starting with 6–9"/> */}
               {isStaff && <Field label="Designation" value={user?.designation || "—"} disabled/>}
               {isStaff && <Field label="Shift" value={user?.shift || "—"} disabled/>}
               <div style={{ display:"flex", justifyContent:"flex-end", paddingTop:4 }}>
