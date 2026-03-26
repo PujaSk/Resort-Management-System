@@ -48,6 +48,24 @@ app.get("/", (req, res) => {
   res.send("Backend Running 🚀");
 });
 
+
+//For testing the mail is going or not...
+// Add this temporarily to server.js for debugging
+app.get("/test-email-debug", async (req, res) => {
+  try {
+    const sendEmail = require("./utils/brevoSender");
+    const result = await sendEmail({
+      to: "royalpalace.care1@gmail.com",
+      subject: "Debug Test",
+      html: "<p>Test</p>",
+    });
+    res.json({ success: true, result });
+  } catch (err) {
+    // Return the FULL error so you can see what Brevo says
+    res.json({ success: false, error: err.message });
+  }
+});
+
 // Start Server ONLY after DB connects
 const startServer = async () => {
   try {

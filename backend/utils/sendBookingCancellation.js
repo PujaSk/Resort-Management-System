@@ -1,20 +1,11 @@
 // backend/utils/sendBookingCancellation.js
 
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT),
-  secure: false,
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-});
+const sendEmail = require("./brevoSender");  // ← CHANGED
 
 const fmt     = (n) => Number(n).toLocaleString("en-IN");
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", {
   weekday: "long", year: "numeric", month: "long", day: "numeric",
 });
-
-/* Parse "YYYY-MM-DD" as local date to avoid UTC shift */
 const fmtYMD = (ymd) => {
   const [y, mo, d] = ymd.split("-").map(Number);
   return new Date(y, mo - 1, d).toLocaleDateString("en-IN", {
@@ -22,18 +13,6 @@ const fmtYMD = (ymd) => {
   });
 };
 
-/* ══════════════════════════════════════════════
-   MAIN EXPORT
-
-   Room cancellations:
-     cancellationFee    = 15% of booking.totalAmount   (always, regardless of split)
-     cancellationRefund = amountPaid − cancellationFee (min 0)
-
-   Hall single-date cancellations, pass:
-     isHall: true
-     cancelledDate: "2026-03-29"
-     remainingDates: ["2026-03-07", "2026-03-25"]
-══════════════════════════════════════════════ */
 const sendBookingCancellation = async ({
   booking, customer, roomType,
   isHall             = false,
@@ -47,25 +26,17 @@ const sendBookingCancellation = async ({
     const totalAmt  = Number(booking.totalAmount)  || 0;
     const paidAmt   = Number(booking.amountPaid)   || 0;
 
-    /* ── ROOM: fee = 15% of total; refund = paid − fee ── */
     const roomFee    = Math.round(totalAmt * 0.15);
     const roomRefund = Math.max(0, paidAmt - roomFee);
     const isHalfPay  = paidAmt < totalAmt && paidAmt > 0;
     const duWaived   = isHalfPay ? (totalAmt - paidAmt) : 0;
 
-    /* ── HALL: fee = 25% of FULL per-day rate (price_per_night), not just what was paid.
-       This keeps the fee consistent whether customer paid 50% or 100%.
-       Refund = amountPaid − fee  (min 0)
-       If 50% was paid: remaining balance is waived. ── */
     const pricePerDay     = roomType?.price_per_night || 0;
     const hallFee         = cancellationFee    !== null ? cancellationFee    : Math.round(pricePerDay * 0.25);
     const hallRefund      = cancellationRefund !== null ? cancellationRefund : Math.max(0, paidAmt - hallFee);
     const hallIsHalfPay   = pricePerDay > 0 && paidAmt < pricePerDay && paidAmt > 0;
     const hallBalWaived   = hallIsHalfPay ? (pricePerDay - paidAmt) : 0;
 
-    /* ══════════════════════════════════════════
-       HALL SINGLE-DATE CANCELLATION EMAIL
-    ══════════════════════════════════════════ */
     if (isHall && cancelledDate) {
       const pricePerDay  = roomType?.price_per_night || 0;
       const hasRemaining = remainingDates.length > 0;
@@ -86,7 +57,6 @@ const sendBookingCancellation = async ({
           <tr><td align="center">
             <table width="620" cellpadding="0" cellspacing="0"
               style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-
               <tr>
                 <td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
                   <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
@@ -94,7 +64,6 @@ const sendBookingCancellation = async ({
                   <p style="margin:10px 0 0;color:rgba(201,168,76,.7);font-size:14px;">One date from your venue booking has been removed</p>
                 </td>
               </tr>
-
               <tr>
                 <td style="background:#c0392b;padding:12px 40px;text-align:center;">
                   <p style="margin:0;font-size:12px;color:#ffffff;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
@@ -102,7 +71,6 @@ const sendBookingCancellation = async ({
                   </p>
                 </td>
               </tr>
-
               <tr>
                 <td style="padding:35px 40px;">
                   <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">
@@ -110,12 +78,9 @@ const sendBookingCancellation = async ({
                     We have successfully cancelled <strong>one date</strong> from your venue booking at
                     <strong>Royal Palace Resort</strong>. Your remaining event dates are still confirmed.
                   </p>
-
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #f5c6c6;">
                     <tr>
-                      <td colspan="2" style="background:#fdecea;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#c0392b;font-weight:700;text-transform:uppercase;border-bottom:1px solid #f5c6c6;">
-                        ❌ Cancelled Date
-                      </td>
+                      <td colspan="2" style="background:#fdecea;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#c0392b;font-weight:700;text-transform:uppercase;border-bottom:1px solid #f5c6c6;">❌ Cancelled Date</td>
                     </tr>
                     <tr>
                       <td style="padding:12px 16px;color:#888;font-size:13px;width:40%;border-bottom:1px solid #f9eaea;">Venue / Hall</td>
@@ -130,13 +95,10 @@ const sendBookingCancellation = async ({
                       <td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">₹${fmt(pricePerDay)}</td>
                     </tr>
                   </table>
-
                   ${hasRemaining ? `
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #c8e6c9;">
                     <tr>
-                      <td colspan="3" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">
-                        ✅ Your Remaining Active Dates
-                      </td>
+                      <td colspan="3" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">✅ Your Remaining Active Dates</td>
                     </tr>
                     <tr style="background:#f0f7f0;">
                       <th style="padding:8px 16px;text-align:left;font-size:11px;color:#888;font-weight:600;border-bottom:1px solid #c8e6c9;">#</th>
@@ -148,18 +110,13 @@ const sendBookingCancellation = async ({
                   ` : `
                   <div style="background:#fdecea;border-left:4px solid #c0392b;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                     <p style="margin:0;color:#c0392b;font-size:13px;font-weight:700;margin-bottom:4px;">All Dates Cancelled</p>
-                    <p style="margin:0;color:#666;font-size:13px;line-height:1.7;">
-                      This was the last remaining date in your event booking. Your entire venue reservation has now been cancelled.
-                    </p>
+                    <p style="margin:0;color:#666;font-size:13px;line-height:1.7;">This was the last remaining date in your event booking. Your entire venue reservation has now been cancelled.</p>
                   </div>
                   `}
-
                   ${wasPaid ? `
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #c8e6c9;">
                     <tr>
-                      <td colspan="2" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">
-                        💰 Refund Breakdown
-                      </td>
+                      <td colspan="2" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">💰 Refund Breakdown</td>
                     </tr>
                     <tr>
                       <td style="padding:12px 16px;color:#888;font-size:13px;width:40%;border-bottom:1px solid #f0f4f0;">Full per-day rate</td>
@@ -199,73 +156,50 @@ const sendBookingCancellation = async ({
                     </tr>
                     ` : ""}
                   </table>
-
                   <div style="background:#fdf8ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                     <p style="margin:0 0 6px;color:#8B6914;font-size:13px;font-weight:700;">ℹ️ Refund Note</p>
                     <p style="margin:0;color:#666;font-size:13px;line-height:1.7;">
                       As per our cancellation policy, a <strong>25% cancellation fee (₹${fmt(hallFee)})</strong> applies on the full day rate of ₹${fmt(pricePerDay)}.
-                      ${hallIsHalfPay
-                        ? `Since you paid 50% upfront (₹${fmt(paidAmt)}), the fee has been deducted from your upfront payment and the remaining balance of ₹${fmt(hallBalWaived)} has been waived. `
-                        : ""
-                      }
+                      ${hallIsHalfPay ? `Since you paid 50% upfront (₹${fmt(paidAmt)}), the fee has been deducted from your upfront payment and the remaining balance of ₹${fmt(hallBalWaived)} has been waived. ` : ""}
                       ${hallRefund > 0
                         ? `A refund of <strong>₹${fmt(hallRefund)}</strong> has been initiated to your original payment method and will be credited within <strong>2 business days</strong>.`
                         : `No refund is applicable as the cancellation fee equals or exceeds your upfront payment.`
                       }
-                      For queries, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;">${process.env.EMAIL_USER}</a>.
+                      For queries, contact us at <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;">${process.env.BREVO_SENDER_EMAIL}</a>.
                     </p>
                   </div>
                   ` : `
                   <div style="background:#f9f5ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
-                    <p style="margin:0;color:#8B6914;font-size:13px;line-height:1.7;">
-                      As no payment was made for this date, there is no refund to process.
-                    </p>
+                    <p style="margin:0;color:#8B6914;font-size:13px;line-height:1.7;">As no payment was made for this date, there is no refund to process.</p>
                   </div>
                   `}
-
                   <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
-                    ${hasRemaining
-                      ? "Your remaining event dates are confirmed and we look forward to hosting you. For any questions, please reach us at"
-                      : "We hope to welcome you to Royal Palace Resort on a future occasion. For any questions, please reach us at"}
-                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                    ${hasRemaining ? "Your remaining event dates are confirmed and we look forward to hosting you. For any questions, please reach us at" : "We hope to welcome you to Royal Palace Resort on a future occasion. For any questions, please reach us at"}
+                    <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;text-decoration:none;">${process.env.BREVO_SENDER_EMAIL}</a>.
                   </p>
-
-                  <p style="color:#555;font-size:14px;margin:0;">
-                    Warm Regards,<br>
-                    <strong style="color:#1a1208;">Royal Palace Resort Team</strong>
-                  </p>
+                  <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
                 </td>
               </tr>
-
               <tr>
                 <td style="background:#1a1208;padding:20px 40px;text-align:center;">
                   <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
                   <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
                 </td>
               </tr>
-
             </table>
           </td></tr>
         </table>
-      </div>
-      `;
+      </div>`;
 
-      await transporter.sendMail({
-        from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      await sendEmail({  // ← CHANGED
         to:      customer?.email,
         subject: `Venue Date Cancelled — ${roomType?.type_name} | ${fmtYMD(cancelledDate)}`,
         html,
       });
-
       console.log("✅ Hall date cancellation email sent to:", customer?.email);
       return;
     }
 
-    /* ══════════════════════════════════════════
-       ROOM CANCELLATION EMAIL
-       Fee = 15% of total booking amount
-       Refund = amountPaid − fee  (min 0)
-    ══════════════════════════════════════════ */
     const nights = Math.round(
       (new Date(booking.checkOutDateTime) - new Date(booking.checkInDateTime)) / 86400000
     );
@@ -276,8 +210,6 @@ const sendBookingCancellation = async ({
         <tr><td align="center">
           <table width="620" cellpadding="0" cellspacing="0"
             style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-
-            <!-- HEADER -->
             <tr>
               <td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
                 <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
@@ -285,7 +217,6 @@ const sendBookingCancellation = async ({
                 <p style="margin:10px 0 0;color:rgba(201,168,76,.7);font-size:14px;">Your reservation has been cancelled</p>
               </td>
             </tr>
-
             <tr>
               <td style="background:#c0392b;padding:12px 40px;text-align:center;">
                 <p style="margin:0;font-size:12px;color:#ffffff;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
@@ -293,7 +224,6 @@ const sendBookingCancellation = async ({
                 </p>
               </td>
             </tr>
-
             <tr>
               <td style="padding:35px 40px;">
                 <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">
@@ -301,13 +231,9 @@ const sendBookingCancellation = async ({
                   We have successfully processed the cancellation of your reservation at
                   <strong>Royal Palace Resort</strong>. Below are the details of the cancelled booking.
                 </p>
-
-                <!-- CANCELLED BOOKING DETAILS -->
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                   <tr>
-                    <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">
-                      🛏 Cancelled Reservation
-                    </td>
+                    <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🛏 Cancelled Reservation</td>
                   </tr>
                   <tr>
                     <td style="padding:12px 16px;color:#888;font-size:13px;width:40%;border-bottom:1px solid #f0ebe2;">Room Type</td>
@@ -334,13 +260,9 @@ const sendBookingCancellation = async ({
                     <td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">₹${fmt(paidAmt)}</td>
                   </tr>
                 </table>
-
-                <!-- CANCELLATION FEE BREAKDOWN (always shown for rooms) -->
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
                   <tr>
-                    <td colspan="2" style="background:#fef3c7;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#92400e;font-weight:700;text-transform:uppercase;border-bottom:1px solid #fde68a;">
-                      ⚠ Cancellation Fee Applied
-                    </td>
+                    <td colspan="2" style="background:#fef3c7;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#92400e;font-weight:700;text-transform:uppercase;border-bottom:1px solid #fde68a;">⚠ Cancellation Fee Applied</td>
                   </tr>
                   <tr>
                     <td style="padding:12px 16px;color:#888;font-size:13px;width:50%;border-bottom:1px solid #fef3c7;">Total booking value</td>
@@ -367,14 +289,10 @@ const sendBookingCancellation = async ({
                     </td>
                   </tr>
                 </table>
-
                 ${wasPaid && roomRefund > 0 ? `
-                <!-- REFUND STATUS -->
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #c8e6c9;">
                   <tr>
-                    <td colspan="2" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">
-                      💰 Refund Information
-                    </td>
+                    <td colspan="2" style="background:#e8f5e9;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#2e7d32;font-weight:700;text-transform:uppercase;border-bottom:1px solid #c8e6c9;">💰 Refund Information</td>
                   </tr>
                   <tr>
                     <td style="padding:12px 16px;color:#888;font-size:13px;width:40%;border-bottom:1px solid #f0f4f0;">Refund Amount</td>
@@ -391,7 +309,6 @@ const sendBookingCancellation = async ({
                     <td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">Within <strong>2 business days</strong></td>
                   </tr>
                 </table>
-
                 <div style="background:#fdf8ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                   <p style="margin:0 0 6px;color:#8B6914;font-size:13px;font-weight:700;">ℹ️ Cancellation Policy</p>
                   <p style="margin:0;color:#666;font-size:13px;line-height:1.7;">
@@ -399,7 +316,7 @@ const sendBookingCancellation = async ({
                     ${isHalfPay ? `Since you paid ₹${fmt(paidAmt)} upfront, the fee is deducted from that amount and the remaining balance of ₹${fmt(duWaived)} has been waived. ` : ""}
                     A refund of <strong>₹${fmt(roomRefund)}</strong> has been initiated to your original payment method
                     and will be credited within <strong>2 business days</strong>.
-                    For queries, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;">${process.env.EMAIL_USER}</a>.
+                    For queries, contact us at <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;">${process.env.BREVO_SENDER_EMAIL}</a>.
                   </p>
                 </div>
                 ` : wasPaid && roomRefund === 0 ? `
@@ -409,50 +326,38 @@ const sendBookingCancellation = async ({
                     The 15% cancellation fee of <strong>₹${fmt(roomFee)}</strong> equals or exceeds your upfront payment of <strong>₹${fmt(paidAmt)}</strong>.
                     No refund is applicable.
                     ${isHalfPay ? `The remaining balance of ₹${fmt(duWaived)} due at check-in has been waived. ` : ""}
-                    For queries, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;">${process.env.EMAIL_USER}</a>.
+                    For queries, contact us at <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;">${process.env.BREVO_SENDER_EMAIL}</a>.
                   </p>
                 </div>
                 ` : `
                 <div style="background:#f9f5ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
-                  <p style="margin:0;color:#8B6914;font-size:13px;line-height:1.7;">
-                    As no payment was made for this booking, there is no refund to process.
-                  </p>
+                  <p style="margin:0;color:#8B6914;font-size:13px;line-height:1.7;">As no payment was made for this booking, there is no refund to process.</p>
                 </div>
                 `}
-
                 <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                   We hope to welcome you to Royal Palace Resort on another occasion.
                   If you have any questions, please reach us at
-                  <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                  <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;text-decoration:none;">${process.env.BREVO_SENDER_EMAIL}</a>.
                 </p>
-
-                <p style="color:#555;font-size:14px;margin:0;">
-                  Warm Regards,<br>
-                  <strong style="color:#1a1208;">Royal Palace Resort Team</strong>
-                </p>
+                <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
               </td>
             </tr>
-
             <tr>
               <td style="background:#1a1208;padding:20px 40px;text-align:center;">
                 <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
                 <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
               </td>
             </tr>
-
           </table>
         </td></tr>
       </table>
-    </div>
-    `;
+    </div>`;
 
-    await transporter.sendMail({
-      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+    await sendEmail({  // ← CHANGED
       to:      customer?.email,
       subject: `Booking Cancelled — ${roomType?.type_name} | Ref #${booking._id?.toString().slice(-8).toUpperCase()}`,
       html,
     });
-
     console.log("✅ Cancellation email sent to:", customer?.email);
   } catch (err) {
     console.error("❌ Cancellation email error:", err.message);

@@ -1,5 +1,6 @@
 // src/components/ui/Loader.jsx
 import React from "react"
+import CrownIcon from "./Crown"
 
 export default function Loader({ fullPage=false, text="" }) {
   const inner = (
@@ -10,7 +11,7 @@ export default function Loader({ fullPage=false, text="" }) {
   )
   if (fullPage) return (
     <div className="fixed inset-0 z-[9999] bg-resort-bg flex flex-col items-center justify-center gap-6">
-      <span className="font-display text-3xl font-bold gold-text">✦ Resort Management</span>
+      <span className="font-display text-3xl font-bold gold-text"> <CrownIcon/> Resort Management</span>
       {inner}
     </div>
   )

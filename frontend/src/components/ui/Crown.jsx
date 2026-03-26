@@ -21,7 +21,7 @@ const CrownIcon = ({ size = 42 }) => {
         {/* Crown fill + border */}
         <path
           d="M2 20L6 9L12 15L16 2L20 15L26 9L30 20H2Z"
-          stroke="#c9a96e"
+          stroke="#C9A84C"
           strokeWidth="1.4"
           strokeLinejoin="round"
           fill="rgba(201,169,110,0.08)"
