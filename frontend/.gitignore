@@ -22,7 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# its not letting me push code to git that's whyy
-.env
-backend/.env

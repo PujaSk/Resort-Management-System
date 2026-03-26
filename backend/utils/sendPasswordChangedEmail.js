@@ -1,13 +1,26 @@
 // backend/utils/sendPasswordChangedEmail.js
+// Sends a security alert email when a password is changed or reset
 
-const sendEmail = require("./brevoSender");  // ← CHANGED
+const nodemailer = require("nodemailer")
 
+const transporter = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT),
+  secure: false,
+  auth:   { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+})
+
+/**
+ * @param {string} email       - recipient email
+ * @param {string} name        - recipient display name
+ * @param {"changed"|"reset"} type - "changed" = with current password, "reset" = via OTP
+ */
 const sendPasswordChangedEmail = async (email, name = "User", type = "changed") => {
-  const actionLabel = type === "reset" ? "reset via OTP" : "changed";
+  const actionLabel = type === "reset" ? "reset via OTP" : "changed"
   const timeStr     = new Date().toLocaleString("en-IN", {
     timeZone:"Asia/Kolkata", day:"2-digit", month:"short",
     year:"numeric", hour:"2-digit", minute:"2-digit",
-  });
+  })
 
   const html = `
   <div style="margin:0;padding:0;font-family:Arial,sans-serif;background:#0D0B08;">
@@ -15,59 +28,100 @@ const sendPasswordChangedEmail = async (email, name = "User", type = "changed") 
       <tr><td align="center">
         <table width="580" cellpadding="0" cellspacing="0"
           style="background:#13110E;border-radius:14px;overflow:hidden;border:1px solid rgba(201,168,76,.15);">
+
+          <!-- Gold top bar -->
           <tr><td style="height:3px;background:linear-gradient(90deg,#C9A84C,#E0C06A,#C9A84C);"></td></tr>
+
+          <!-- Header -->
           <tr><td style="padding:32px 36px 20px;border-bottom:1px solid rgba(255,255,255,.06);">
             <table width="100%" cellpadding="0" cellspacing="0"><tr>
               <td>
-                <p style="margin:0;font-size:20px;font-weight:800;color:#C9A84C;letter-spacing:0.03em;">Royal Palace Resort</p>
-                <p style="margin:4px 0 0;font-size:11px;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;">Security Alert</p>
+                <p style="margin:0;font-size:20px;font-weight:800;color:#C9A84C;letter-spacing:0.03em;">
+                  Royal Palace Resort
+                </p>
+                <p style="margin:4px 0 0;font-size:11px;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;">
+                  Security Alert
+                </p>
               </td>
               <td align="right">
-                <div style="width:42px;height:42px;border-radius:10px;background:rgba(224,82,82,.12);border:1px solid rgba(224,82,82,.25);display:inline-flex;align-items:center;justify-content:center;font-size:20px;">🔒</div>
+                <div style="width:42px;height:42px;border-radius:10px;background:rgba(224,82,82,.12);
+                  border:1px solid rgba(224,82,82,.25);display:inline-flex;align-items:center;
+                  justify-content:center;font-size:20px;">🔒</div>
               </td>
             </tr></table>
           </td></tr>
+
+          <!-- Body -->
           <tr><td style="padding:28px 36px;">
-            <p style="margin:0 0 12px;font-size:14px;color:#8A7E6A;">Hello, <strong style="color:#F5ECD7;">${name}</strong></p>
-            <p style="margin:0 0 20px;font-size:14px;color:#8A7E6A;line-height:1.7;">
-              Your account password was successfully <strong style="color:#F5ECD7;">${actionLabel}</strong> on your Royal Palace Resort staff/admin account.
+            <p style="margin:0 0 12px;font-size:14px;color:#8A7E6A;">
+              Hello, <strong style="color:#F5ECD7;">${name}</strong>
             </p>
-            <div style="padding:16px 20px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);margin-bottom:20px;">
+            <p style="margin:0 0 20px;font-size:14px;color:#8A7E6A;line-height:1.7;">
+              Your account password was successfully <strong style="color:#F5ECD7;">${actionLabel}</strong>
+              on your Royal Palace Resort staff/admin account.
+            </p>
+
+            <!-- Info box -->
+            <div style="padding:16px 20px;border-radius:10px;background:rgba(255,255,255,.03);
+              border:1px solid rgba(255,255,255,.08);margin-bottom:20px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;letter-spacing:0.1em;padding-bottom:4px;">Account</td>
+                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;
+                    letter-spacing:0.1em;padding-bottom:4px;">Account</td>
                   <td align="right" style="font-size:13px;font-weight:600;color:#F5ECD7;">${email}</td>
                 </tr>
                 <tr>
-                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;letter-spacing:0.1em;padding-top:10px;">Time (IST)</td>
+                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;
+                    letter-spacing:0.1em;padding-top:10px;">Time (IST)</td>
                   <td align="right" style="font-size:13px;font-weight:600;color:#C9A84C;padding-top:10px;">${timeStr}</td>
                 </tr>
                 <tr>
-                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;letter-spacing:0.1em;padding-top:10px;">Method</td>
-                  <td align="right" style="font-size:13px;font-weight:600;color:#C8BAA0;padding-top:10px;">${type === "reset" ? "OTP Verification" : "Current Password"}</td>
+                  <td style="font-size:11px;color:#6B6054;text-transform:uppercase;
+                    letter-spacing:0.1em;padding-top:10px;">Method</td>
+                  <td align="right" style="font-size:13px;font-weight:600;color:#C8BAA0;padding-top:10px;">
+                    ${type === "reset" ? "OTP Verification" : "Current Password"}
+                  </td>
                 </tr>
               </table>
             </div>
-            <div style="padding:14px 18px;border-radius:10px;background:rgba(224,82,82,.07);border:1px solid rgba(224,82,82,.2);margin-bottom:20px;">
-              <p style="margin:0;font-size:13px;color:#E05252;font-weight:600;">⚠ Not you?</p>
-              <p style="margin:6px 0 0;font-size:12px;color:#8A7E6A;line-height:1.6;">If you did not make this change, your account may be compromised. Please contact your system administrator immediately.</p>
+
+            <!-- Warning -->
+            <div style="padding:14px 18px;border-radius:10px;background:rgba(224,82,82,.07);
+              border:1px solid rgba(224,82,82,.2);margin-bottom:20px;">
+              <p style="margin:0;font-size:13px;color:#E05252;font-weight:600;">
+                ⚠ Not you?
+              </p>
+              <p style="margin:6px 0 0;font-size:12px;color:#8A7E6A;line-height:1.6;">
+                If you did not make this change, your account may be compromised.
+                Please contact your system administrator immediately.
+              </p>
             </div>
-            <p style="margin:0;font-size:13px;color:#6B6054;line-height:1.7;">If this was you, no action is needed. Your account is secure.</p>
+
+            <p style="margin:0;font-size:13px;color:#6B6054;line-height:1.7;">
+              If this was you, no action is needed. Your account is secure.
+            </p>
           </td></tr>
+
+          <!-- Footer -->
           <tr><td style="padding:20px 36px;border-top:1px solid rgba(255,255,255,.05);text-align:center;">
-            <p style="margin:0;font-size:11px;color:#4A4035;">© ${new Date().getFullYear()} Royal Palace Resort &nbsp;·&nbsp; This is an automated security notification</p>
+            <p style="margin:0;font-size:11px;color:#4A4035;">
+              © ${new Date().getFullYear()} Royal Palace Resort &nbsp;·&nbsp; This is an automated security notification
+            </p>
           </td></tr>
+
         </table>
       </td></tr>
     </table>
-  </div>`;
+  </div>`
 
-  await sendEmail({  // ← CHANGED
+  await transporter.sendMail({
+    from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
     to:      email,
     subject: `🔒 Password ${type === "reset" ? "Reset" : "Changed"} — Royal Palace Resort`,
     html,
-  });
-  console.log(`Password-changed email sent to ${email}`);
-};
+  })
 
-module.exports = sendPasswordChangedEmail;
+  console.log(`Password-changed email sent to ${email}`)
+}
+
+module.exports = sendPasswordChangedEmail

@@ -1,6 +1,13 @@
 // backend/utils/sendBookingConfirmation.js
 
-const sendEmail = require("./brevoSender");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+});
 
 const fmt     = (n) => Number(n).toLocaleString("en-IN");
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", {
@@ -21,6 +28,9 @@ const paymentMethodLabel = (method) => ({
   checkin:     "Pay at Check-In",
 })[method] || method;
 
+/* ══════════════════════════════════════════════
+   MAIN EXPORT
+══════════════════════════════════════════════ */
 const sendBookingConfirmation = async ({
   booking, customer, roomType, room,
   isHall    = false,
@@ -29,6 +39,7 @@ const sendBookingConfirmation = async ({
   try {
     const payDetails = booking.paymentDetails || {};
 
+    /* ── Payment method string ── */
     let paymentInfo = `<strong>${paymentMethodLabel(payDetails.method || "—")}</strong>`;
     if (payDetails.method === "credit_card" || payDetails.method === "debit_card") {
       if (payDetails.cardNumber) paymentInfo += ` ending in <strong>****${payDetails.cardNumber}</strong>`;
@@ -38,6 +49,7 @@ const sendBookingConfirmation = async ({
       paymentInfo += ` — <strong>${payDetails.upiId}</strong>`;
     }
 
+    /* ── Split label ── */
     const splitChoice  = payDetails.splitChoice || booking.paymentSplit || "full";
     const isHalfPay    = splitChoice === "half";
     const splitLabel   = isHalfPay ? "50% Upfront" : "Full Payment";
@@ -48,12 +60,16 @@ const sendBookingConfirmation = async ({
     const amountPaid   = Number(booking.amountPaid)   || 0;
     const amountDue    = Number(booking.amountDue)    || 0;
 
+    /* ══════════════════════════════════════════
+       HALL EMAIL
+    ══════════════════════════════════════════ */
     if (isHall && hallDates.length) {
       const sorted      = [...hallDates].sort();
       const daysBooked  = sorted.length;
       const pricePerDay = roomType?.price_per_night || 0;
       const totalAmt    = daysBooked * pricePerDay;
 
+      /* payment split for halls */
       const hallSplitChoice = payDetails.splitChoice || booking.paymentSplit || "full";
       const hallIsHalfPay   = hallSplitChoice === "half";
       const hallPaidPerDay  = hallIsHalfPay ? Math.ceil(pricePerDay / 2) : pricePerDay;
@@ -78,6 +94,7 @@ const sendBookingConfirmation = async ({
           <tr><td align="center">
             <table width="620" cellpadding="0" cellspacing="0"
               style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+
               <tr>
                 <td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
                   <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
@@ -85,6 +102,7 @@ const sendBookingConfirmation = async ({
                   <p style="margin:10px 0 0;color:#C9A84C;font-size:14px;">✦ &nbsp;Your hall is reserved&nbsp; ✦</p>
                 </td>
               </tr>
+
               <tr>
                 <td style="background:#C9A84C;padding:12px 40px;text-align:center;">
                   <p style="margin:0;font-size:12px;color:#1a1208;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
@@ -92,6 +110,7 @@ const sendBookingConfirmation = async ({
                   </p>
                 </td>
               </tr>
+
               ${hallIsHalfPay ? `
               <tr>
                 <td style="background:#fef3c7;padding:12px 40px;text-align:center;border-bottom:1px solid #fde68a;">
@@ -101,6 +120,7 @@ const sendBookingConfirmation = async ({
                 </td>
               </tr>
               ` : ""}
+
               <tr>
                 <td style="padding:35px 40px;">
                   <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">
@@ -108,6 +128,8 @@ const sendBookingConfirmation = async ({
                     Thank you for choosing <strong>Royal Palace Resort</strong> for your event.
                     Your hall reservation is confirmed. Please find the full details below.
                   </p>
+
+                  <!-- VENUE DETAILS -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                     <tr>
                       <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🏛 Venue Details</td>
@@ -125,6 +147,8 @@ const sendBookingConfirmation = async ({
                       <td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">Up to ${roomType?.capacity || "—"} guests</td>
                     </tr>
                   </table>
+
+                  <!-- BOOKED DATES -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                     <tr>
                       <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">📅 Reserved Dates</td>
@@ -135,6 +159,8 @@ const sendBookingConfirmation = async ({
                     </tr>
                     ${dateRows}
                   </table>
+
+                  <!-- PAYMENT SUMMARY -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                     <tr>
                       <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">💰 Payment Summary</td>
@@ -176,6 +202,7 @@ const sendBookingConfirmation = async ({
                       </td>
                     </tr>
                   </table>
+
                   <div style="background:#fdf8ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                     <p style="margin:0 0 8px;color:#8B6914;font-size:13px;font-weight:700;">📋 Important Notes</p>
                     <ul style="margin:0;padding-left:18px;color:#666;font-size:13px;line-height:1.8;">
@@ -187,26 +214,30 @@ const sendBookingConfirmation = async ({
                       <li>Cancellation policy: <strong>25% cancellation charge per day</strong> (₹${fmt(hallCancFee)}/day) applies on the full per-day rate — regardless of how much was paid upfront. ${hallIsHalfPay ? "If cancelled, remaining balance will be waived." : ""}</li>
                     </ul>
                   </div>
+
                   <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                     We look forward to hosting your event. For any queries, please reach us at
-                    <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;text-decoration:none;">${process.env.BREVO_SENDER_EMAIL}</a>.
+                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
                   </p>
                   <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
                 </td>
               </tr>
+
               <tr>
                 <td style="background:#1a1208;padding:20px 40px;text-align:center;">
                   <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
                   <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
                 </td>
               </tr>
+
             </table>
           </td></tr>
         </table>
       </div>`;
 
-      await sendEmail({
-        to: customer?.email,
+      await transporter.sendMail({
+        from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+        to:      customer?.email,
         subject: hallIsHalfPay
           ? `Hall Booking Confirmed (50% Paid) — ${roomType?.type_name} | ${daysBooked} Day${daysBooked !== 1 ? "s" : ""}`
           : `Hall Booking Confirmed — ${roomType?.type_name} | ${daysBooked} Day${daysBooked !== 1 ? "s" : ""}`,
@@ -216,6 +247,13 @@ const sendBookingConfirmation = async ({
       return;
     }
 
+    /* ══════════════════════════════════════════
+       ROOM BOOKING EMAIL
+       Shows split payment info clearly:
+       - "50% Upfront" or "Full Payment"
+       - Amount paid now  vs  amount due at check-in
+       - Cancellation policy: 15% of total
+    ══════════════════════════════════════════ */
     const nights = Math.round(
       (new Date(booking.checkOutDateTime) - new Date(booking.checkInDateTime)) / 86400000
     );
@@ -237,6 +275,8 @@ const sendBookingConfirmation = async ({
         <tr><td align="center">
           <table width="620" cellpadding="0" cellspacing="0"
             style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+
+            <!-- HEADER -->
             <tr>
               <td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
                 <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
@@ -244,6 +284,7 @@ const sendBookingConfirmation = async ({
                 <p style="margin:10px 0 0;color:#C9A84C;font-size:14px;">✦ Your reservation is secured ✦</p>
               </td>
             </tr>
+
             <tr>
               <td style="background:#C9A84C;padding:12px 40px;text-align:center;">
                 <p style="margin:0;font-size:12px;color:#1a1208;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
@@ -251,6 +292,8 @@ const sendBookingConfirmation = async ({
                 </p>
               </td>
             </tr>
+
+            <!-- PAYMENT SPLIT BANNER — shown for 50% payments -->
             ${isHalfPay ? `
             <tr>
               <td style="background:#fef3c7;padding:12px 40px;text-align:center;border-bottom:1px solid #fde68a;">
@@ -260,6 +303,7 @@ const sendBookingConfirmation = async ({
               </td>
             </tr>
             ` : ""}
+
             <tr>
               <td style="padding:35px 40px;">
                 <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">
@@ -267,6 +311,8 @@ const sendBookingConfirmation = async ({
                   Thank you for choosing <strong>Royal Palace Resort</strong>.
                   We are delighted to confirm your reservation. Below are the complete details.
                 </p>
+
+                <!-- STAY DETAILS -->
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                   <tr>
                     <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🛏 Stay Details</td>
@@ -305,6 +351,8 @@ const sendBookingConfirmation = async ({
                     </td>
                   </tr>
                 </table>
+
+                <!-- GUEST LIST -->
                 ${guestRows ? `
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                   <tr>
@@ -318,6 +366,8 @@ const sendBookingConfirmation = async ({
                   </tr>
                   ${guestRows}
                 </table>` : ""}
+
+                <!-- PAYMENT SUMMARY -->
                 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
                   <tr>
                     <td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">💰 Payment Summary</td>
@@ -359,6 +409,8 @@ const sendBookingConfirmation = async ({
                     </td>
                   </tr>
                 </table>
+
+                <!-- CANCELLATION POLICY -->
                 <div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                   <p style="margin:0 0 8px;color:#92400e;font-size:13px;font-weight:700;">⚠ Cancellation Policy</p>
                   <p style="margin:0;color:#666;font-size:13px;line-height:1.7;">
@@ -366,9 +418,11 @@ const sendBookingConfirmation = async ({
                     of ₹${fmt(totalAmount)} if you cancel before check-in — regardless of how much was paid upfront.
                     ${amountDue > 0 ? `If cancelled, the remaining balance of ₹${fmt(amountDue)} due at check-in will be waived. ` : ""}
                     To cancel, visit My Bookings or contact us at
-                    <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#92400e;">${process.env.BREVO_SENDER_EMAIL}</a>.
+                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#92400e;">${process.env.EMAIL_USER}</a>.
                   </p>
                 </div>
+
+                <!-- IMPORTANT NOTES -->
                 <div style="background:#fdf8ee;border-left:4px solid #C9A84C;padding:15px 20px;border-radius:0 8px 8px 0;margin-bottom:25px;">
                   <p style="margin:0 0 8px;color:#8B6914;font-size:13px;font-weight:700;">📋 Important Notes</p>
                   <ul style="margin:0;padding-left:18px;color:#666;font-size:13px;line-height:1.8;">
@@ -378,27 +432,31 @@ const sendBookingConfirmation = async ({
                     <li>For any changes, contact us at least 24 hours prior to check-in.</li>
                   </ul>
                 </div>
+
                 <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                   We look forward to welcoming you. Should you have any questions or special requests,
                   please reach us at
-                  <a href="mailto:${process.env.BREVO_SENDER_EMAIL}" style="color:#C9A84C;text-decoration:none;">${process.env.BREVO_SENDER_EMAIL}</a>.
+                  <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
                 </p>
                 <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
               </td>
             </tr>
+
             <tr>
               <td style="background:#1a1208;padding:20px 40px;text-align:center;">
                 <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
                 <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
               </td>
             </tr>
+
           </table>
         </td></tr>
       </table>
     </div>`;
 
-    await sendEmail({
-      to: customer?.email,
+    await transporter.sendMail({
+      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      to:      customer?.email,
       subject: isHalfPay
         ? `Booking Confirmed (50% Paid) — ${roomType?.type_name} | ${fmtDate(booking.checkInDateTime)}`
         : `Booking Confirmed — ${roomType?.type_name} | ${fmtDate(booking.checkInDateTime)}`,
@@ -406,6 +464,7 @@ const sendBookingConfirmation = async ({
     });
 
     console.log("✅ Booking confirmation sent to:", customer?.email);
+
   } catch (err) {
     console.error("❌ Booking email error:", err.message);
   }
