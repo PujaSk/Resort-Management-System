@@ -104,10 +104,15 @@ function RoomCard({ type, index, onBook }) {
   return (
     <div
       className={`card group cursor-pointer anim-up d${Math.min(index + 1, 5)} overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-gold`}
-      style={{ border:"1px solid rgba(255,255,255,.06)", padding:0 }}
+      style={{
+        border: "1px solid rgba(255,255,255,.06)",
+        padding: 0,
+        display: "flex",
+        flexDirection: "column",   // ← makes card a flex column
+      }}
     >
       {/* IMAGE */}
-      <div style={{ height:"clamp(160px, 22vw, 192px)", overflow:"hidden" }}>
+      <div style={{ height:"clamp(160px, 22vw, 192px)", overflow:"hidden", flexShrink:0 }}>
         {type.images?.length > 0 ? (
           <img
             src={`http://resort-management-system.onrender.com/${type.images[0]}`}
@@ -122,8 +127,13 @@ function RoomCard({ type, index, onBook }) {
         )}
       </div>
 
-      {/* CONTENT */}
-      <div style={{ padding:"clamp(14px, 3vw, 20px)" }}>
+      {/* CONTENT — flex column so button is pushed to bottom */}
+      <div style={{
+        padding: "clamp(14px, 3vw, 20px)",
+        flex: 1,                   // ← takes remaining height
+        display: "flex",
+        flexDirection: "column",
+      }}>
         {/* Title + Price row */}
         <div className="flex justify-between items-start" style={{ marginBottom:8 }}>
           <div style={{ flex:1, minWidth:0, paddingRight:8 }}>
@@ -199,6 +209,7 @@ function RoomCard({ type, index, onBook }) {
           </div>
         )}
 
+        {/* Book Now — pinned to bottom via marginTop auto */}
         <button
           onClick={onBook}
           className="w-full gold-btn font-bold"
@@ -206,6 +217,7 @@ function RoomCard({ type, index, onBook }) {
             padding:"clamp(8px, 1.5vw, 10px) 0",
             borderRadius:12, fontSize:"clamp(12px, 1.5vw, 14px)",
             color:"#0E0C09",
+            marginTop:"auto",      // ← pushes button to bottom of card
           }}>
           Book Now
         </button>
@@ -268,6 +280,11 @@ export default function RoomList() {
           }
           @media (min-width: 900px) {
             .room-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+          }
+
+          /* Equalise card heights within each row */
+          .room-grid > * {
+            height: 100%;
           }
 
           /* Search input responsive width */

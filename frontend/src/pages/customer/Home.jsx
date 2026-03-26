@@ -211,7 +211,7 @@ function useScrollReveal(dep) {
   }, [dep])
 }
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://resort-management-system.onrender.com"
+const BACKEND_URL = (import.meta.env.VITE_API_URL || "https://resort-management-system.onrender.com/api").replace("/api", "")
 const toImageUrl  = p => { if (!p) return null; if (p.startsWith("http")) return p; return `${BACKEND_URL}/${p.replace(/^\/+/, "")}` }
 const isHall      = r => /hall/i.test(r.type_name)
 const ACCENTS     = ["#c9a96e","#d4af70"]
