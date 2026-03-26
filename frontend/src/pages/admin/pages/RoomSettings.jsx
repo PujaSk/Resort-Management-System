@@ -157,7 +157,7 @@ export default function RoomSettings() {
 
       {loading ? (
         /* FIX: was "grid grid-cols-3 gap-4" — hardcoded 3-col breaks on mobile */
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1,2,3].map(i => <div key={i} className="card-p"><div className="h-32 skeleton rounded-xl"/></div>)}
         </div>
       ) : types.length === 0 ? (
@@ -168,7 +168,7 @@ export default function RoomSettings() {
           <p className="text-resort-dim">No room types yet. Create one to get started!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-up d1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 anim-up d1">
           {types.map((t, i) => (
             <div key={t._id} className={`card-p anim-up d${Math.min(i+1,5)}`}
               style={{ display:"flex", flexDirection:"column" }}>
