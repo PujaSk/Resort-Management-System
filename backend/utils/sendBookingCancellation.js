@@ -251,7 +251,7 @@ const sendBookingCancellation = async ({
       `;
 
       await transporter.sendMail({
-        from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+        from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
         to:      customer?.email,
         subject: `Venue Date Cancelled — ${roomType?.type_name} | ${fmtYMD(cancelledDate)}`,
         html,
@@ -447,7 +447,7 @@ const sendBookingCancellation = async ({
     `;
 
     await transporter.sendMail({
-      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
       to:      customer?.email,
       subject: `Booking Cancelled — ${roomType?.type_name} | Ref #${booking._id?.toString().slice(-8).toUpperCase()}`,
       html,
