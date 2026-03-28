@@ -182,7 +182,7 @@ const sendWalkInWelcomeEmail = async ({
     </div>`;
 
     await transporter.sendMail({
-      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
       to:      email,
       subject: `Welcome to Royal Palace Resort — Your Account is Ready`,
       html,

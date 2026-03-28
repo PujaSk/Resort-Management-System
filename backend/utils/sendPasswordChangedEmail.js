@@ -115,7 +115,7 @@ const sendPasswordChangedEmail = async (email, name = "User", type = "changed") 
   </div>`
 
   await transporter.sendMail({
-    from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+    from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
     to:      email,
     subject: `🔒 Password ${type === "reset" ? "Reset" : "Changed"} — Royal Palace Resort`,
     html,

@@ -235,7 +235,7 @@ const sendCheckInEmail = async ({
       : `Checked In — Welcome to Your Room | Ref #${refId}`;
 
     await transporter.sendMail({
-      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
       to:      email,
       subject,
       html,
