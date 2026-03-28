@@ -5,13 +5,13 @@ import {
   PlusIcon, PencilIcon, IconWarning, IconSparkle,
 } from "../../../components/ui/Icons"
 
-const API_BASE = "http://resort-management-system.onrender.com/api/facilities"
+const API_BASE = `${import.meta.env.VITE_API_URL || "https://resort-management-system.onrender.com/api"}/facilities`
 
 const getImageSrc = (imgPath) => {
   if (!imgPath) return ""
   if (imgPath.startsWith("http")) return imgPath
   const clean = imgPath.replace(/\\/g, "/")
-  return `http://resort-management-system.onrender.com/${clean}`
+  return `https://resort-management-system.onrender.com/${clean}`
 }
 
 const initialForm = { name: "", description: "", images: [] }

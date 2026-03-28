@@ -198,7 +198,7 @@ exports.createBooking = async (req, res) => {
           isHall:    true,
           hallDates,
         });
-      } catch (_) {}
+      } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
       return res.status(201).json({
         message:  `${daysBooked} hall booking(s) created successfully`,
@@ -275,7 +275,7 @@ exports.createBooking = async (req, res) => {
         room:      availableRoom,
         isHall:    false,
       });
-    } catch (_) {}
+    } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
     res.status(201).json({ message: "Booking created successfully", booking });
 
@@ -439,6 +439,10 @@ exports.cancelBooking = async (req, res) => {
     booking.cancelledAt        = new Date();
     await booking.save();
 
+    // ADD THIS LINE RIGHT HERE:
+console.log("🔍 About to send email to:", booking.customer?.email, "| customer type:", typeof booking.customer);
+
+
     if (!isHall && booking.room) {
       await Room.findByIdAndUpdate(booking.room._id || booking.room, { status: "Available" });
     }
@@ -470,7 +474,8 @@ exports.cancelBooking = async (req, res) => {
           cancellationFee: cancFee, cancellationRefund: cancRefund,
         });
       }
-    } catch (_) {}
+      console.log("📧 Cancellation email sent!"); // ADD THIS
+    } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
     res.json({
       message:            "Booking cancelled successfully",
@@ -579,7 +584,7 @@ exports.checkIn = async (req, res) => {
         cardNumber:    collectedNow ? maskCard(req.body.cardNumber) : null,
         amountDeferredToCheckout: amtDeferred,
       });
-    } catch (_) {}
+    } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
     res.json({ message: "Checked in successfully", booking });
   } catch (err) {
@@ -719,7 +724,7 @@ exports.checkOut = async (req, res) => {
         isExtendedStay:       !!isExtended,
         extendedStayDetails:  isExtended ? booking.extendedStay : null,
       });
-    } catch (_) {}
+    } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
     res.json({ message: "Checked out successfully", booking });
   } catch (err) {
@@ -810,7 +815,7 @@ exports.switchRoom = async (req, res) => {
       booking.roomSwitch.emailSent = true;
       await booking.save();
       emailSent = true;
-    } catch (_) {}
+    } catch (err) { console.error("EMAIL FAILED:", err.message); }
 
     const updated = await Booking.findById(booking._id)
       .populate("room")

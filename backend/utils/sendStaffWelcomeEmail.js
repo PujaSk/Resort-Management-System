@@ -132,7 +132,7 @@ module.exports = async function sendStaffWelcomeEmail({ staff, tempPassword }) {
 </html>`;
 
   await transporter.sendMail({
-    from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+    from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
     to:      staff.email,
     subject: `Welcome to Royal Palace Resort — Your Staff Login Details`,
     html,

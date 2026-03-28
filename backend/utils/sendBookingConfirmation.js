@@ -236,7 +236,7 @@ const sendBookingConfirmation = async ({
       </div>`;
 
       await transporter.sendMail({
-        from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+        from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
         to:      customer?.email,
         subject: hallIsHalfPay
           ? `Hall Booking Confirmed (50% Paid) — ${roomType?.type_name} | ${daysBooked} Day${daysBooked !== 1 ? "s" : ""}`
@@ -455,7 +455,7 @@ const sendBookingConfirmation = async ({
     </div>`;
 
     await transporter.sendMail({
-      from:    `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
+      from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
       to:      customer?.email,
       subject: isHalfPay
         ? `Booking Confirmed (50% Paid) — ${roomType?.type_name} | ${fmtDate(booking.checkInDateTime)}`

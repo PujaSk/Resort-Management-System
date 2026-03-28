@@ -2,9 +2,15 @@
 
 const nodemailer = require("nodemailer");
 
+// ✅ CHANGED: was service:"gmail" — now uses Brevo SMTP
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+  host:   process.env.SMTP_HOST,
+  port:   Number(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 const fmtDate = (d) =>
@@ -39,10 +45,10 @@ module.exports = async function sendNoShowEmail({ booking, customer }) {
       <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:16px 18px;margin-bottom:20px;">
         <table style="width:100%;border-collapse:collapse;">
           ${[
-            ["Booking Ref",  `#${booking._id?.toString().slice(-8).toUpperCase()}`],
+            ["Booking Ref",   `#${booking._id?.toString().slice(-8).toUpperCase()}`],
             ["Check-In Date", fmtDate(booking.checkInDateTime)],
             ["Check-Out Date",fmtDate(booking.checkOutDateTime)],
-            ["Amount Paid",  fmtINR(booking.amountPaid || 0)],
+            ["Amount Paid",   fmtINR(booking.amountPaid || 0)],
           ].map(([l, v]) => `
             <tr>
               <td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;">${l}</td>
@@ -65,7 +71,7 @@ module.exports = async function sendNoShowEmail({ booking, customer }) {
 
       <div style="text-align:center;padding:14px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.12);border-radius:10px;">
         <p style="color:#C9A84C;font-size:13px;font-weight:700;margin:0;">
-          📞 Contact Front Desk &nbsp;|&nbsp; ✉ ${process.env.EMAIL_USER || "reception@royalpalaceresort.com"}
+          📞 Contact Front Desk &nbsp;|&nbsp; ✉ ${process.env.EMAIL_USER}
         </p>
       </div>
     </div>
@@ -78,8 +84,8 @@ module.exports = async function sendNoShowEmail({ booking, customer }) {
 </html>`;
 
   await transporter.sendMail({
-    from: `"Royal Palace Resort" <${process.env.EMAIL_USER}>`,
-    to:   customer.email,
+    from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
+    to:      customer.email,
     subject,
     html,
   });
