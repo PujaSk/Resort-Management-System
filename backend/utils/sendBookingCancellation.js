@@ -215,7 +215,7 @@ const sendBookingCancellation = async ({
                         ? `A refund of <strong>₹${fmt(hallRefund)}</strong> has been initiated to your original payment method and will be credited within <strong>2 business days</strong>.`
                         : `No refund is applicable as the cancellation fee equals or exceeds your upfront payment.`
                       }
-                      For queries, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;">${process.env.EMAIL_USER}</a>.
+                      For queries, contact us at <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;">${process.env.EMAIL_FROM}</a>.
                     </p>
                   </div>
                   ` : `
@@ -230,7 +230,7 @@ const sendBookingCancellation = async ({
                     ${hasRemaining
                       ? "Your remaining event dates are confirmed and we look forward to hosting you. For any questions, please reach us at"
                       : "We hope to welcome you to Royal Palace Resort on a future occasion. For any questions, please reach us at"}
-                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                    <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_FROM}</a>.
                   </p>
 
                   <p style="color:#555;font-size:14px;margin:0;">
@@ -402,7 +402,7 @@ const sendBookingCancellation = async ({
                     ${isHalfPay ? `Since you paid ₹${fmt(paidAmt)} upfront, the fee is deducted from that amount and the remaining balance of ₹${fmt(duWaived)} has been waived. ` : ""}
                     A refund of <strong>₹${fmt(roomRefund)}</strong> has been initiated to your original payment method
                     and will be credited within <strong>2 business days</strong>.
-                    For queries, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;">${process.env.EMAIL_USER}</a>.
+                    For queries, contact us at <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;">${process.env.EMAIL_FROM}</a>.
                   </p>
                 </div>
                 ` : wasPaid && roomRefund === 0 ? `
@@ -426,7 +426,7 @@ const sendBookingCancellation = async ({
                 <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                   We hope to welcome you to Royal Palace Resort on another occasion.
                   If you have any questions, please reach us at
-                  <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                  <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_FROM}</a>.
                 </p>
 
                 <p style="color:#555;font-size:14px;margin:0;">

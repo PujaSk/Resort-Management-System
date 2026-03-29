@@ -217,7 +217,7 @@ const sendBookingConfirmation = async ({
 
                   <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                     We look forward to hosting your event. For any queries, please reach us at
-                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                    <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_FROM}</a>.
                   </p>
                   <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
                 </td>
@@ -418,7 +418,7 @@ const sendBookingConfirmation = async ({
                     of ₹${fmt(totalAmount)} if you cancel before check-in — regardless of how much was paid upfront.
                     ${amountDue > 0 ? `If cancelled, the remaining balance of ₹${fmt(amountDue)} due at check-in will be waived. ` : ""}
                     To cancel, visit My Bookings or contact us at
-                    <a href="mailto:${process.env.EMAIL_USER}" style="color:#92400e;">${process.env.EMAIL_USER}</a>.
+                    <a href="mailto:${process.env.EMAIL_FROM}" style="color:#92400e;">${process.env.EMAIL_FROM}</a>.
                   </p>
                 </div>
 
@@ -436,7 +436,7 @@ const sendBookingConfirmation = async ({
                 <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                   We look forward to welcoming you. Should you have any questions or special requests,
                   please reach us at
-                  <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                  <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_FROM}</a>.
                 </p>
                 <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
               </td>
