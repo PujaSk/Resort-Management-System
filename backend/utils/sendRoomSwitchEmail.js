@@ -111,7 +111,7 @@ module.exports = async function sendRoomSwitchEmail({
       <div style="text-align:center;padding:16px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.12);border-radius:10px;">
         <p style="color:rgba(255,255,255,.35);font-size:11px;margin:0 0 4px;">Questions? Contact us</p>
         <p style="color:#C9A84C;font-size:13px;font-weight:700;margin:0;">
-          📞 Front Desk &nbsp;|&nbsp; ✉ ${process.env.EMAIL_USER}
+          📞 Front Desk &nbsp;|&nbsp; ✉ ${process.env.EMAIL_FROM}
         </p>
       </div>
     </div>
