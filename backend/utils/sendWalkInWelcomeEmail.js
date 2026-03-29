@@ -161,7 +161,7 @@ const sendWalkInWelcomeEmail = async ({
                 <p style="color:#333;font-size:14px;line-height:1.7;margin:0 0 25px;">
                   If you did not visit our resort or did not authorize this account creation,
                   please contact us immediately at
-                  <a href="mailto:${process.env.EMAIL_USER}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_USER}</a>.
+                  <a href="mailto:${process.env.EMAIL_FROM}" style="color:#C9A84C;text-decoration:none;">${process.env.EMAIL_FROM}</a>.
                 </p>
 
                 <p style="color:#555;font-size:14px;margin:0;">

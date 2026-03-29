@@ -88,7 +88,6 @@ const EMPTY_FORM = {
 const RESPONSIVE_CSS = `
   @keyframes spin { to { transform: rotate(360deg) } }
 
-  /* Guest detail row: 3-col on md+, stack on mobile */
   .rb-guest-row {
     display: grid;
     grid-template-columns: 1fr;
@@ -101,7 +100,6 @@ const RESPONSIVE_CSS = `
     }
   }
 
-  /* Date pair: side-by-side on sm+, stack on tiny screens */
   .rb-date-pair {
     display: grid;
     grid-template-columns: 1fr;
@@ -111,7 +109,6 @@ const RESPONSIVE_CSS = `
     .rb-date-pair { grid-template-columns: 1fr 1fr; }
   }
 
-  /* Payment method grid: 2-col always, but tighter on mobile */
   .rb-pm-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -122,7 +119,6 @@ const RESPONSIVE_CSS = `
     .rb-pm-grid { gap: 8px; }
   }
 
-  /* Mode buttons: stack on tiny screens */
   .rb-mode-row {
     display: flex;
     gap: 8px;
@@ -130,7 +126,6 @@ const RESPONSIVE_CSS = `
   }
   .rb-mode-row > * { flex: 1; min-width: 120px; }
 
-  /* Booking status row */
   .rb-status-row {
     display: flex;
     gap: 8px;
@@ -138,7 +133,6 @@ const RESPONSIVE_CSS = `
   }
   .rb-status-row > * { flex: 1; min-width: 140px; }
 
-  /* Step bar: scroll on mobile */
   .rb-step-bar {
     overflow-x: auto;
     -ms-overflow-style: none;
@@ -153,7 +147,6 @@ const RESPONSIVE_CSS = `
     min-width: max-content;
   }
 
-  /* Cancel modal: full width on mobile */
   .rb-cancel-modal {
     background: #161410;
     border: 1px solid rgba(248,113,113,.3);
@@ -169,7 +162,6 @@ const RESPONSIVE_CSS = `
     .rb-cancel-modal { padding: 32px 28px; }
   }
 
-  /* Booking snapshot grid in cancel modal */
   .rb-snapshot-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -179,7 +171,6 @@ const RESPONSIVE_CSS = `
     .rb-snapshot-grid { grid-template-columns: 1fr 1fr; }
   }
 
-  /* Check-in choice buttons: stack on very small screens */
   .rb-ci-choice {
     display: flex;
     flex-direction: column;
@@ -188,7 +179,6 @@ const RESPONSIVE_CSS = `
     .rb-ci-choice { flex-direction: row; }
   }
 
-  /* Summary booking stats */
   .rb-booking-stats {
     display: flex;
     gap: 8px;
@@ -196,7 +186,6 @@ const RESPONSIVE_CSS = `
     margin-bottom: 16px;
   }
 
-  /* Guest count controls */
   .rb-guest-count-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -206,7 +195,6 @@ const RESPONSIVE_CSS = `
     .rb-guest-count-grid { grid-template-columns: 1fr; }
   }
 
-  /* Card detail in co-payment on mobile */
   .rb-card-expiry-row {
     display: flex;
     gap: 10px;
@@ -357,7 +345,6 @@ function GuestDetailRow({ idx, guest, onChange, type, errors }) {
       <p style={{ fontSize:11, color:isAdult?"#C9A84C":"#5294E0", fontWeight:700, marginBottom:10, display:"inline-flex", alignItems:"center", gap:5 }}>
         {isAdult ? <UserIcon size={14}/> : <ChildIcon size={26} color="#5294E0"/>} Guest {idx+1} — {type}
       </p>
-      {/* RESPONSIVE: rb-guest-row class handles 3-col → 1-col */}
       <div className="rb-guest-row">
         <div>
           <label style={{ fontSize:10, color:"#6B6054", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em", display:"block", marginBottom:5 }}>Full Name *</label>
@@ -387,7 +374,7 @@ function GuestDetailRow({ idx, guest, onChange, type, errors }) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   ADMIN CANCEL MODAL — fully responsive
+   ADMIN CANCEL MODAL
 ════════════════════════════════════════════════════════════ */
 function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
   const [confirmed, setConfirmed] = useState(false)
@@ -421,7 +408,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
     }} onClick={() => { if (!loading) onClose() }}>
       <div onClick={e => e.stopPropagation()} className="rb-cancel-modal">
 
-        {/* Icon + title */}
         <div style={{ textAlign:"center", marginBottom:22 }}>
           <div style={{
             width:58, height:58, borderRadius:"50%",
@@ -437,7 +423,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </p>
         </div>
 
-        {/* Booking snapshot */}
         <div style={{
           borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,.07)",
           marginBottom:18,
@@ -447,7 +432,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
               {isHall ? "🏛 Hall Booking" : "🛏 Room Booking"} — Ref #{booking._id?.toString().slice(-8).toUpperCase()}
             </p>
           </div>
-          {/* RESPONSIVE: rb-snapshot-grid */}
           <div className="rb-snapshot-grid">
             {[
               ["Guest",      booking.customer?.name || "—"],
@@ -470,7 +454,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </div>
         </div>
 
-        {/* Cancellation breakdown */}
         <div style={{
           borderRadius:12, overflow:"hidden",
           border:`1px solid ${isHall ? "rgba(248,113,113,.2)" : "rgba(251,191,36,.2)"}`,
@@ -574,7 +557,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </div>
         </div>
 
-        {/* Visual bar */}
         <div style={{ marginBottom:18 }}>
           <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#6B6054", marginBottom:5, flexWrap:"wrap", gap:4 }}>
             <span>Refundable ({isHall?"75%":"85%"} of {isHall?"day rate":"total"})</span>
@@ -586,7 +568,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </div>
         </div>
 
-        {/* Summary callout */}
         <div style={{
           padding:"14px 16px", borderRadius:10, marginBottom:20,
           background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.15)",
@@ -615,7 +596,6 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </p>
         </div>
 
-        {/* Two-step confirm */}
         {!confirmed ? (
           <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
             <button onClick={onClose} disabled={loading} style={{
@@ -960,10 +940,9 @@ export default function RoomBooking() {
     setCancelLoad(false)
   }
 
-  /* ── Co-payment fields (shared between check-in/checkout modals) ── */
+  /* ── Co-payment fields ── */
   const CoPaymentFields = () => (
     <div>
-      {/* RESPONSIVE: rb-pm-grid */}
       <div className="rb-pm-grid">
         {PAYMENT_METHODS.map(m=>{
           const Icon=m.icon
@@ -1012,7 +991,6 @@ export default function RoomBooking() {
               style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${coErrors.cardName?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"8px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
             {coErrors.cardName&&<p style={{fontSize:11,color:"#E05252",marginTop:4}}>{coErrors.cardName}</p>}
           </div>
-          {/* RESPONSIVE: rb-card-expiry-row */}
           <div className="rb-card-expiry-row">
             <div style={{flex:1}}>
               <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Expiry (MM/YY) *</label>
@@ -1097,6 +1075,43 @@ export default function RoomBooking() {
     revenue:   bookings.filter(b=>b.bookingStatus!=="Cancelled").reduce((s,b)=>s+(b.amountPaid||0),0),
   }
 
+  /* ════════════════════════════════════
+     TODAY FILTER HELPERS
+  ════════════════════════════════════ */
+  const getTodayMidnight = () => {
+    const d = new Date(); d.setHours(0,0,0,0); return d
+  }
+
+  /**
+   * Check-Ins Today:
+   *   bookingStatus === "Booked"  (not yet checked in)
+   *   AND checkInDateTime <= today  (due today OR overdue from a past date)
+   *   AND checkOutDateTime > today  (stay hasn't fully expired yet)
+   *
+   *   This catches:
+   *   - Guests whose check-in was yesterday (or earlier) but haven't arrived yet
+   *   - Guests whose check-in is today
+   *   Both are actionable — front desk can still check them in.
+   */
+  const checkInTodayCount = bookings.filter(b => {
+    if (b.bookingStatus !== "Booked") return false
+    const ciDate = new Date(b.checkInDateTime); ciDate.setHours(0,0,0,0)
+    const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
+    const today  = getTodayMidnight()
+    return ciDate <= today && coDate > today
+  }).length
+
+  /**
+   * Check-Outs Today:
+   *   bookingStatus === "Checked-In"  (actively staying)
+   *   AND checkOutDateTime <= today midnight  (due today OR overdue/past)
+   */
+  const checkOutTodayCount = bookings.filter(b => {
+    if (b.bookingStatus !== "Checked-In") return false
+    const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
+    return coDate <= getTodayMidnight()
+  }).length
+
   if (loading) return <Loader text="Loading bookings…"/>
 
   return (
@@ -1104,7 +1119,6 @@ export default function RoomBooking() {
       <style>{RESPONSIVE_CSS}</style>
       <Toast {...(toast||{})}/>
 
-      {/* RICH CANCEL MODAL */}
       {cancelModal && (
         <AdminCancelModal
           booking={cancelModal}
@@ -1124,7 +1138,7 @@ export default function RoomBooking() {
         </Button>
       </div>
 
-      {/* KPI — grid-cols-2 lg:grid-cols-4 handled by index.css */}
+      {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 anim-up d1">
         {[
           { label:"Total Bookings",    value:stats.total,           color:"#C9A84C", Icon:()=><svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> },
@@ -1170,17 +1184,17 @@ export default function RoomBooking() {
             </div>
           </div>
 
-          {/* Today filters */}
+          {/* ════════════════════════════════════
+              TODAY FILTERS
+              Check-Ins Today  : status=Booked + checkIn <= today + checkOut > today
+              Check-Outs Today : status=Checked-In + checkOut <= today
+          ════════════════════════════════════ */}
           <div className="flex gap-2 mb-4 flex-wrap items-center">
             <span style={{fontSize:11,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginRight:4}}>Today:</span>
             {[
-              { key:"checkin-today",  label:"Check-Ins Today",  Icon: BellIcon, color:"#C9A84C" },
-              { key:"checkout-today", label:"Check-Outs Today", Icon: DoorIcon, color:"#52C07A" },
+              { key:"checkin-today",  label:"Check-Ins Today",  Icon: BellIcon, color:"#C9A84C", count: checkInTodayCount  },
+              { key:"checkout-today", label:"Check-Outs Today", Icon: DoorIcon, color:"#52C07A", count: checkOutTodayCount },
             ].map(f=>{
-              const todayStr=new Date().toDateString()
-              const count=f.key==="checkin-today"
-                ?bookings.filter(b=>new Date(b.checkInDateTime).toDateString()===todayStr).length
-                :bookings.filter(b=>new Date(b.checkOutDateTime).toDateString()===todayStr).length
               const active=dayFilter===f.key
               return (
                 <button key={f.key} onClick={()=>{ setDayFilter(active?"All":f.key); setBFilter("All") }}
@@ -1188,7 +1202,7 @@ export default function RoomBooking() {
                     background:active?`${f.color}18`:"rgba(255,255,255,.03)",border:`1.5px solid ${active?f.color:"rgba(255,255,255,.1)"}`,outline:"none"}}>
                   <f.Icon size={14} color={active?f.color:"#C8BAA0"}/>
                   <span style={{fontSize:12,fontWeight:700,color:active?f.color:"#C8BAA0"}}>{f.label}</span>
-                  <span style={{fontSize:11,fontWeight:800,padding:"1px 7px",borderRadius:20,background:active?f.color:"rgba(255,255,255,.08)",color:active?"#100E0B":"#8A7E6A"}}>{count}</span>
+                  <span style={{fontSize:11,fontWeight:800,padding:"1px 7px",borderRadius:20,background:active?f.color:"rgba(255,255,255,.08)",color:active?"#100E0B":"#8A7E6A"}}>{f.count}</span>
                 </button>
               )
             })}
@@ -1215,10 +1229,26 @@ export default function RoomBooking() {
             [...bookings]
               .sort((a,b)=>new Date(a.checkInDateTime)-new Date(b.checkInDateTime))
               .filter(b=>{
-                const todayStr=new Date().toDateString()
-                if (dayFilter==="checkin-today"&&new Date(b.checkInDateTime).toDateString()!==todayStr) return false
-                if (dayFilter==="checkout-today"&&new Date(b.checkOutDateTime).toDateString()!==todayStr) return false
-                const ms=bFilter==="All"||b.bookingStatus===bFilter
+                const todayMidnight = getTodayMidnight()
+
+                if (dayFilter === "checkin-today") {
+                  // Show Booked guests whose check-in is today OR overdue
+                  // but whose checkout hasn't passed yet (still actionable)
+                  if (b.bookingStatus !== "Booked") return false
+                  const ciDate = new Date(b.checkInDateTime); ciDate.setHours(0,0,0,0)
+                  const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
+                  if (ciDate > todayMidnight) return false   // future — not yet due
+                  if (coDate <= todayMidnight) return false  // checkout passed — no point
+                }
+
+                if (dayFilter === "checkout-today") {
+                  // Only show Checked-In guests whose checkout is today OR overdue (past)
+                  if (b.bookingStatus !== "Checked-In") return false
+                  const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
+                  if (coDate > todayMidnight) return false
+                }
+
+                const ms = bFilter==="All" || b.bookingStatus===bFilter
                 const ref=(b._id?.toString().slice(-8)||"").toUpperCase(), sq=search.toUpperCase()
                 const hallDates=b.paymentDetails?.hallDates||[]
                 const siblingRefMatch=b.paymentDetails?.isNonContiguous&&sq.length>=3&&bookings.some(s=>s.paymentDetails?.isNonContiguous&&s.customer?._id===b.customer?._id&&JSON.stringify([...(s.paymentDetails?.hallDates||[])].sort())===JSON.stringify([...hallDates].sort())&&s._id?.toString().slice(-8).toUpperCase().includes(sq))
@@ -1275,7 +1305,6 @@ export default function RoomBooking() {
             <div className="space-y-5">
               <div>
                 <SectionLabel text="Booking Type"/>
-                {/* RESPONSIVE: rb-mode-row */}
                 <div className="rb-mode-row">
                   <ModeBtn active={form.bookingType==="room"} onClick={()=>set({bookingType:"room",hallDates:[],checkIn:todayISO(),checkOut:"",roomTypeId:""})}><IconBed size={20}/> Room Booking</ModeBtn>
                   <ModeBtn active={form.bookingType==="hall"} onClick={()=>set({bookingType:"hall",hallDates:[],checkIn:"",checkOut:"",roomTypeId:""})}><HallIcon size={20}/> Hall / Banquet</ModeBtn>
@@ -1284,7 +1313,6 @@ export default function RoomBooking() {
               {form.bookingType==="room"&&(
                 <div>
                   <SectionLabel text="Booking Status"/>
-                  {/* RESPONSIVE: rb-status-row */}
                   <div className="rb-status-row">
                     {BOOKING_STATUSES.map(bs=>(
                       <button key={bs.value} type="button" onClick={()=>set({bookingStatus:bs.value})}
@@ -1377,7 +1405,6 @@ export default function RoomBooking() {
                         <p style={{fontSize:12,color:"#E05252",display:"flex",alignItems:"center",gap:5}}><IconWarning size={12} color="#E05252"/> {errors.emailVerify}</p>
                       </div>
                     )}
-                    {/* RESPONSIVE: form-grid-2 class from index.css */}
                     <div className="form-grid-2">
                       <div>
                         <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>City *</label>
@@ -1438,7 +1465,6 @@ export default function RoomBooking() {
               )}
               {form.bookingType==="room"&&(
                 <div className="space-y-3">
-                  {/* RESPONSIVE: rb-date-pair */}
                   <div className="rb-date-pair">
                     <div>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Check-in Date *</label>
@@ -1496,7 +1522,6 @@ export default function RoomBooking() {
                 <span style={{fontSize:12,fontWeight:700,color:totalGuests>capacity?"#E05252":"#52C07A"}}>{totalGuests}/{capacity}</span>
               </div>
               {errors._capacity&&<FieldError msg={errors._capacity}/>}
-              {/* RESPONSIVE: rb-guest-count-grid */}
               <div className="rb-guest-count-grid">
                 {[{label:"Adults (18+)",key:"adults",min:1},{label:"Children (1–17)",key:"children",min:0}].map(({label,key,min})=>(
                   <div key={key}>
@@ -1538,7 +1563,6 @@ export default function RoomBooking() {
               </div>
               <div>
                 <p style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Payment Method *</p>
-                {/* RESPONSIVE: rb-pm-grid */}
                 <div className="rb-pm-grid">
                   {PAYMENT_METHODS.map(m=>{
                     const Icon=m.icon
@@ -1586,7 +1610,6 @@ export default function RoomBooking() {
                       style={{width:"100%",background:"rgba(255,255,255,.04)",border:`1px solid ${errors.cardName?"rgba(224,82,82,.5)":"rgba(255,255,255,.1)"}`,borderRadius:8,padding:"9px 12px",fontSize:13,color:"#F5ECD7",outline:"none",boxSizing:"border-box"}}/>
                     <FieldError msg={errors.cardName}/>
                   </div>
-                  {/* RESPONSIVE: rb-card-expiry-row */}
                   <div className="rb-card-expiry-row">
                     <div style={{flex:1}}>
                       <label style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:5}}>Expiry (MM/YY) *</label>
@@ -1674,7 +1697,6 @@ export default function RoomBooking() {
                     <p style={{fontSize:12,fontWeight:700,color:"#E0A852",marginBottom:2,display:"flex",alignItems:"center",gap:5}}><IconWarning size={13} color="#E0A852"/> Partial payment — {fmtINR(due)} still due</p>
                     <p style={{fontSize:11,color:"#8A7E6A"}}>When would you like to collect the remaining amount?</p>
                   </div>
-                  {/* RESPONSIVE: rb-ci-choice */}
                   <div className="rb-ci-choice">
                     {[
                       {val:"now",     Icon:RupeeIcon, label:"Collect Now",          desc:"Collect at check-in"},
