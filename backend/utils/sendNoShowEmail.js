@@ -1,14 +1,77 @@
-// ═══════════════════════════════════════════════
-// FILE: backend/utils/sendNoShowEmail.js
-// ═══════════════════════════════════════════════
+// backend/utils/sendNoShowEmail.js
+
 const { sendEmail } = require("./mailer");
-const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-const fmtINR  = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
+
+const PHONE    = "94281 00000";
+const fmtDate  = (d) => new Date(d).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const fmtINR   = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 module.exports = async function sendNoShowEmail({ booking, customer }) {
   if (!customer?.email) return;
   const contactEmail = process.env.EMAIL_FROM || "royalpalace.care1@gmail.com";
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:0;background:#0E0C09;font-family:'Georgia',serif;"><div style="max-width:540px;margin:32px auto;background:#161410;border:1px solid rgba(248,113,113,.25);border-radius:16px;overflow:hidden;"><div style="background:linear-gradient(135deg,#1a100f 0%,#1f1410 100%);padding:28px 36px;text-align:center;border-bottom:1px solid rgba(248,113,113,.2);"><p style="color:rgba(201,168,76,.7);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 4px;">Royal Palace Resort</p><h1 style="color:#f5edd8;font-size:21px;font-weight:700;margin:0 0 4px;">No-Show Notice</h1><p style="color:rgba(255,255,255,.4);font-size:12.5px;margin:0;">Your booking has expired without check-in</p></div><div style="padding:26px 36px;"><p style="color:#e8dcc8;font-size:14px;line-height:1.7;margin:0 0 20px;">Dear <strong style="color:#C9A84C;">${customer.name||"Valued Guest"}</strong>,<br/>Our records show that you did not check in for your reservation and the booking window has now closed.</p><div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:16px 18px;margin-bottom:20px;"><table style="width:100%;border-collapse:collapse;">${[["Booking Ref",`#${booking._id?.toString().slice(-8).toUpperCase()}`],["Check-In Date",fmtDate(booking.checkInDateTime)],["Check-Out Date",fmtDate(booking.checkOutDateTime)],["Amount Paid",fmtINR(booking.amountPaid||0)]].map(([l,v])=>`<tr><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;">${l}</td><td style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);color:#e8dcc8;font-size:12.5px;font-weight:600;text-align:right;">${v}</td></tr>`).join("")}</table></div><div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;"><p style="color:#fbbf24;font-size:13px;font-weight:700;margin:0 0 6px;">Policy Notice</p><p style="color:rgba(255,255,255,.5);font-size:12.5px;line-height:1.65;margin:0;">Per our no-show policy, the amount paid of <strong style="color:#fbbf24;">${fmtINR(booking.amountPaid||0)}</strong> has been retained. No refund is applicable for missed reservations.</p></div><div style="text-align:center;padding:14px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.12);border-radius:10px;"><p style="color:#C9A84C;font-size:13px;font-weight:700;margin:0;">📞 Contact Front Desk &nbsp;|&nbsp; ✉ ${contactEmail}</p></div></div><div style="padding:18px 36px;border-top:1px solid rgba(255,255,255,.06);text-align:center;"><p style="color:rgba(255,255,255,.2);font-size:11px;margin:0;">Royal Palace Resort · Automated No-Show Notification</p></div></div></body></html>`;
+
+  const html = `
+  <div style="margin:0;padding:0;font-family:Georgia,'Times New Roman',serif;background:#f4f1eb;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;"><tr><td align="center">
+      <table width="620" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
+          <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
+          <h1 style="margin:0;font-size:26px;color:#f5edd8;font-weight:700;">No-Show Notice</h1>
+          <p style="margin:10px 0 0;color:rgba(201,168,76,.7);font-size:14px;">Your booking has expired without check-in</p>
+        </td></tr>
+
+        <!-- Red bar -->
+        <tr><td style="background:#c0392b;padding:12px 40px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#ffffff;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Booking Reference: ${booking._id?.toString().slice(-8).toUpperCase()} — NO SHOW</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding:35px 40px;">
+          <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">Dear <strong>${customer.name || "Valued Guest"}</strong>,<br><br>Our records show that you did not check in for your reservation and the booking window has now closed.</p>
+
+          <!-- Booking Details -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
+            <tr><td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🛏 Booking Details</td></tr>
+            <tr><td style="padding:12px 16px;color:#888;font-size:13px;width:45%;border-bottom:1px solid #f0ebe2;">Booking Reference</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">#${booking._id?.toString().slice(-8).toUpperCase()}</td></tr>
+            <tr style="background:#fdfaf5;"><td style="padding:12px 16px;color:#888;font-size:13px;border-bottom:1px solid #f0ebe2;">Check-In Date</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">${fmtDate(booking.checkInDateTime)}</td></tr>
+            <tr><td style="padding:12px 16px;color:#888;font-size:13px;border-bottom:1px solid #f0ebe2;">Check-Out Date</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">${fmtDate(booking.checkOutDateTime)}</td></tr>
+            <tr style="background:#fdfaf5;"><td style="padding:12px 16px;color:#888;font-size:13px;">Amount Paid</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">${fmtINR(booking.amountPaid || 0)}</td></tr>
+          </table>
+
+          <!-- Policy Notice -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #fde68a;">
+            <tr><td colspan="2" style="background:#fef3c7;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#92400e;font-weight:700;text-transform:uppercase;border-bottom:1px solid #fde68a;">⚠ No-Show Policy</td></tr>
+            <tr><td style="padding:14px 16px;color:#666;font-size:13px;line-height:1.7;">
+              Per our no-show policy, the amount paid of <strong style="color:#d97706;">${fmtINR(booking.amountPaid || 0)}</strong> has been retained. No refund is applicable for missed reservations.<br><br>
+              If you believe this is an error or had an emergency, please contact us immediately.
+            </td></tr>
+          </table>
+
+          <!-- Contact -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
+            <tr><td style="background:#f9f5ee;padding:16px 20px;text-align:center;">
+              <p style="margin:0 0 6px;font-size:12px;color:#8B6914;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Contact Us</p>
+              <p style="margin:0;font-size:13px;color:#555;">
+                📞 <strong style="color:#1a1208;">${PHONE}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; ✉ <a href="mailto:${contactEmail}" style="color:#C9A84C;text-decoration:none;">${contactEmail}</a>
+              </p>
+            </td></tr>
+          </table>
+
+          <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#1a1208;padding:20px 40px;text-align:center;">
+          <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
+          <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr></table>
+  </div>`;
+
   await sendEmail(customer.email, `⚠ No-Show Recorded — Booking #${booking._id?.toString().slice(-8).toUpperCase()} | Royal Palace Resort`, html);
   console.log("✅ No-show email sent to:", customer.email);
 };
