@@ -2,14 +2,92 @@
 
 const { sendEmail } = require("./mailer");
 
+const PHONE   = "94281 00000";
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
 module.exports = async function sendRoomSwitchEmail({ booking, customer, roomType, oldRoom, newRoom, reason }) {
   if (!customer?.email) return;
   const contactEmail = process.env.EMAIL_FROM || "royalpalace.care1@gmail.com";
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body style="margin:0;padding:0;background:#0E0C09;font-family:'Georgia',serif;"><div style="max-width:560px;margin:32px auto;background:#161410;border:1px solid rgba(201,168,76,.25);border-radius:16px;overflow:hidden;"><div style="background:linear-gradient(135deg,#1a170f 0%,#201c12 100%);padding:32px 36px;text-align:center;border-bottom:1px solid rgba(201,168,76,.2);"><p style="color:rgba(201,168,76,.7);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin:0 0 6px;">Royal Palace Resort</p><h1 style="color:#f5edd8;font-size:22px;font-weight:700;margin:0 0 6px;">Room Change Notice</h1><p style="color:rgba(255,255,255,.45);font-size:13px;margin:0;">Your room assignment has been updated</p></div><div style="padding:28px 36px;"><p style="color:#e8dcc8;font-size:14.5px;line-height:1.7;margin:0 0 22px;">Dear <strong style="color:#C9A84C;">${customer.name||"Valued Guest"}</strong>,<br/>We have updated your room assignment for your upcoming stay.</p><div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:14px 18px;margin-bottom:20px;"><p style="color:rgba(255,255,255,.4);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 4px;">Booking Reference</p><p style="color:#C9A84C;font-size:15px;font-weight:700;font-family:monospace;margin:0;">#${booking._id?.toString().slice(-8).toUpperCase()}</p></div><div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;"><p style="color:rgba(255,255,255,.35);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 16px;">Room Assignment Change</p><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="text-align:center;padding:10px;width:40%;"><p style="color:rgba(255,255,255,.3);font-size:10px;text-transform:uppercase;margin:0 0 6px;">Previous Room</p><p style="color:rgba(248,113,113,.6);font-size:22px;font-weight:700;margin:0;">${oldRoom?.room_number?`#${oldRoom.room_number}`:"—"}</p>${oldRoom?.floor?`<p style="color:rgba(255,255,255,.3);font-size:11px;margin:4px 0 0;">Floor ${oldRoom.floor}</p>`:""}</td><td style="text-align:center;width:20%;"><span style="color:#C9A84C;font-size:24px;">→</span></td><td style="text-align:center;padding:10px;width:40%;"><p style="color:rgba(255,255,255,.3);font-size:10px;text-transform:uppercase;margin:0 0 6px;">New Room</p><p style="color:#4ade80;font-size:22px;font-weight:700;margin:0;">#${newRoom?.room_number||"—"}</p>${newRoom?.floor?`<p style="color:rgba(255,255,255,.3);font-size:11px;margin:4px 0 0;">Floor ${newRoom.floor}</p>`:""}</td></tr></table></div><table style="width:100%;border-collapse:collapse;margin-bottom:20px;">${[["Room Type",roomType?.type_name||"—"],["Check-In",fmtDate(booking.checkInDateTime)],["Check-Out",fmtDate(booking.checkOutDateTime)],["Reason",reason||"Requested by management"]].map(([l,v])=>`<tr><td style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12.5px;">${l}</td><td style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);color:#e8dcc8;font-size:12.5px;font-weight:600;text-align:right;">${v}</td></tr>`).join("")}</table><div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:10px;padding:14px 16px;margin-bottom:24px;"><p style="color:#4ade80;font-size:13px;margin:0;">✓ All booking details, rates, and payment terms remain unchanged. Only the room number has been updated.</p></div><div style="text-align:center;padding:16px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.12);border-radius:10px;"><p style="color:#C9A84C;font-size:13px;font-weight:700;margin:0;">📞 Front Desk &nbsp;|&nbsp; ✉ ${contactEmail}</p></div></div><div style="padding:20px 36px;border-top:1px solid rgba(255,255,255,.06);text-align:center;"><p style="color:rgba(255,255,255,.2);font-size:11px;margin:0;">Royal Palace Resort · Automated Notification</p></div></div></body></html>`;
+  const html = `
+  <div style="margin:0;padding:0;font-family:Georgia,'Times New Roman',serif;background:#f4f1eb;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;"><tr><td align="center">
+      <table width="620" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
 
-  await sendEmail(customer.email, `🔄 Room Change Notice — ${roomType?.type_name||"Your Booking"} | Ref #${booking._id?.toString().slice(-8).toUpperCase()}`, html);
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#1a1208 0%,#2d2010 50%,#1a1208 100%);padding:40px 40px 30px;text-align:center;">
+          <p style="margin:0 0 6px;font-size:11px;letter-spacing:4px;color:#C9A84C;text-transform:uppercase;">Royal Palace Resort</p>
+          <h1 style="margin:0;font-size:26px;color:#f5edd8;font-weight:700;">Room Change Notice</h1>
+          <p style="margin:10px 0 0;color:rgba(201,168,76,.7);font-size:14px;">Your room assignment has been updated</p>
+        </td></tr>
+
+        <!-- Gold bar -->
+        <tr><td style="background:#C9A84C;padding:12px 40px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#1a1208;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Booking Reference: ${booking._id?.toString().slice(-8).toUpperCase()}</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding:35px 40px;">
+          <p style="color:#333;font-size:15px;line-height:1.7;margin:0 0 25px;">Dear <strong>${customer.name || "Valued Guest"}</strong>,<br><br>We have updated your room assignment for your upcoming stay at <strong>Royal Palace Resort</strong>. Please see the details below.</p>
+
+          <!-- Room Change Visual -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
+            <tr><td colspan="3" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🔄 Room Assignment Change</td></tr>
+            <tr>
+              <td style="padding:20px 16px;text-align:center;width:40%;border-right:1px solid #f0ebe2;">
+                <p style="margin:0 0 6px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Previous Room</p>
+                <p style="margin:0;font-size:28px;font-weight:700;color:#c0392b;">#${oldRoom?.room_number || "—"}</p>
+                ${oldRoom?.floor ? `<p style="margin:4px 0 0;font-size:12px;color:#888;">Floor ${oldRoom.floor}</p>` : ""}
+              </td>
+              <td style="padding:20px 8px;text-align:center;width:20%;">
+                <p style="margin:0;font-size:28px;color:#C9A84C;">→</p>
+              </td>
+              <td style="padding:20px 16px;text-align:center;width:40%;border-left:1px solid #f0ebe2;">
+                <p style="margin:0 0 6px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">New Room</p>
+                <p style="margin:0;font-size:28px;font-weight:700;color:#2e7d32;">#${newRoom?.room_number || "—"}</p>
+                ${newRoom?.floor ? `<p style="margin:4px 0 0;font-size:12px;color:#888;">Floor ${newRoom.floor}</p>` : ""}
+              </td>
+            </tr>
+          </table>
+
+          <!-- Stay Details -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
+            <tr><td colspan="2" style="background:#f9f5ee;padding:12px 16px;font-size:12px;letter-spacing:2px;color:#8B6914;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e8e0d0;">🛏 Stay Details</td></tr>
+            <tr><td style="padding:12px 16px;color:#888;font-size:13px;width:40%;border-bottom:1px solid #f0ebe2;">Room Type</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">${roomType?.type_name || "—"}</td></tr>
+            <tr style="background:#fdfaf5;"><td style="padding:12px 16px;color:#888;font-size:13px;border-bottom:1px solid #f0ebe2;">Check-In</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">${fmtDate(booking.checkInDateTime)}</td></tr>
+            <tr><td style="padding:12px 16px;color:#888;font-size:13px;border-bottom:1px solid #f0ebe2;">Check-Out</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;border-bottom:1px solid #f0ebe2;">${fmtDate(booking.checkOutDateTime)}</td></tr>
+            <tr style="background:#fdfaf5;"><td style="padding:12px 16px;color:#888;font-size:13px;">Reason</td><td style="padding:12px 16px;color:#222;font-size:13px;font-weight:700;">${reason || "Requested by management"}</td></tr>
+          </table>
+
+          <!-- Reassurance -->
+          <div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:25px;">
+            <p style="margin:0;color:#2e7d32;font-size:13px;font-weight:700;">✅ No changes to your booking</p>
+            <p style="margin:6px 0 0;color:#555;font-size:13px;line-height:1.6;">All booking details, rates, and payment terms remain unchanged. Only the room number has been updated.</p>
+          </div>
+
+          <!-- Contact -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:25px;border-radius:8px;overflow:hidden;border:1px solid #e8e0d0;">
+            <tr><td style="background:#f9f5ee;padding:16px 20px;text-align:center;">
+              <p style="margin:0 0 6px;font-size:12px;color:#8B6914;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Questions? Contact Us</p>
+              <p style="margin:0;font-size:13px;color:#555;">
+                📞 <strong style="color:#1a1208;">${PHONE}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; ✉ <a href="mailto:${contactEmail}" style="color:#C9A84C;text-decoration:none;">${contactEmail}</a>
+              </p>
+            </td></tr>
+          </table>
+
+          <p style="color:#555;font-size:14px;margin:0;">Warm Regards,<br><strong style="color:#1a1208;">Royal Palace Resort Team</strong></p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#1a1208;padding:20px 40px;text-align:center;">
+          <p style="margin:0;color:#C9A84C;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Royal Palace Resort</p>
+          <p style="margin:6px 0 0;color:#6b5c3e;font-size:11px;">© ${new Date().getFullYear()} All Rights Reserved.</p>
+        </td></tr>
+
+      </table>
+    </td></tr></table>
+  </div>`;
+
+  await sendEmail(customer.email, `🔄 Room Change Notice — ${roomType?.type_name || "Your Booking"} | Ref #${booking._id?.toString().slice(-8).toUpperCase()}`, html);
   console.log("✅ Room switch email sent to:", customer.email);
 };
