@@ -1,143 +1,17 @@
 // backend/utils/sendStaffWelcomeEmail.js
 
-const nodemailer = require("nodemailer");
+const { sendEmail } = require("./mailer");
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST,
-  port:   Number(process.env.SMTP_PORT),
-secure: false,
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
-
-const DESIGNATION_EMOJI = {
-  Manager:      "👔",
-  Receptionist: "🎯",
-  Housekeeping: "🧹",
-  Chef:         "👨‍🍳",
-  Security:     "🛡",
-};
+const DESIGNATION_EMOJI = { Manager: "👔", Receptionist: "🎯", Housekeeping: "🧹", Chef: "👨‍🍳", Security: "🛡" };
 
 module.exports = async function sendStaffWelcomeEmail({ staff, tempPassword }) {
-  const siteUrl     = process.env.SITE_URL || "http://localhost:5173";
-  const loginUrl    = `${siteUrl}/login`;
-  const emoji       = DESIGNATION_EMOJI[staff.designation] || "👤";
-  const joiningDate = new Date(staff.joining_date).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const siteUrl   = process.env.SITE_URL || "http://localhost:5173";
+  const loginUrl  = `${siteUrl}/login`;
+  const emoji     = DESIGNATION_EMOJI[staff.designation] || "👤";
+  const joiningDate = new Date(staff.joining_date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-</head>
-<body style="margin:0;padding:0;background:#0E0C09;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0E0C09;padding:32px 0;">
-    <tr><td align="center">
-      <table width="580" cellpadding="0" cellspacing="0"
-        style="background:#161310;border:1px solid rgba(201,168,76,.2);border-radius:16px;overflow:hidden;max-width:580px;">
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head><body style="margin:0;padding:0;background:#0E0C09;font-family:'Segoe UI',Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#0E0C09;padding:32px 0;"><tr><td align="center"><table width="580" cellpadding="0" cellspacing="0" style="background:#161310;border:1px solid rgba(201,168,76,.2);border-radius:16px;overflow:hidden;max-width:580px;"><tr><td style="background:linear-gradient(135deg,#1A1610 0%,#221E14 100%);padding:32px 40px;border-bottom:1px solid rgba(201,168,76,.15);text-align:center;"><p style="margin:0 0 4px;font-size:11px;color:#C9A84C;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Royal Palace Resort</p><h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#F5ECD7;">Welcome to the Team ${emoji}</h1></td></tr><tr><td style="padding:32px 40px;"><p style="font-size:15px;color:#C8BAA0;margin:0 0 24px;">Hi <strong style="color:#F5ECD7;">${staff.staff_name}</strong>,<br/>Your staff account has been created at <strong style="color:#C9A84C;">Royal Palace Resort</strong>.</p><div style="text-align:center;margin-bottom:28px;"><span style="display:inline-block;padding:8px 20px;border-radius:30px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);font-size:13px;font-weight:700;color:#C9A84C;">${emoji} ${staff.designation}</span></div><div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:20px 24px;margin-bottom:24px;"><p style="font-size:10px;font-weight:800;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Your Login Credentials</p><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:12px;color:#6B6054;">Email</span></td><td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);text-align:right;"><span style="font-size:13px;font-weight:600;color:#F5ECD7;">${staff.email}</span></td></tr><tr><td style="padding:8px 0;"><span style="font-size:12px;color:#6B6054;">Temporary Password</span></td><td style="padding:8px 0;text-align:right;"><span style="font-size:15px;font-weight:800;color:#C9A84C;letter-spacing:0.15em;font-family:monospace;">${tempPassword}</span></td></tr></table></div><div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px 24px;margin-bottom:28px;"><p style="font-size:10px;font-weight:800;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Your Details</p>${[["Joining Date: ",joiningDate],["Shift: ",staff.shift],["Phone: ",staff.phoneno||"—"]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:#6B6054;">${l}</span><span style="font-size:12px;font-weight:600;color:#C8BAA0;">${v}</span></div>`).join("")}</div><div style="background:rgba(224,168,82,.08);border:1px solid rgba(224,168,82,.25);border-radius:10px;padding:14px 18px;margin-bottom:28px;"><p style="font-size:12px;color:#E0A852;margin:0;">⚠️ <strong>Important:</strong> Please change your password after your first login for security.</p></div><div style="text-align:center;margin-bottom:8px;"><a href="${loginUrl}" style="display:inline-block;padding:13px 36px;background:linear-gradient(135deg,#C9A84C,#E0C06A);color:#0E0C09;font-size:14px;font-weight:800;text-decoration:none;border-radius:10px;">Login to Staff Portal →</a></div></td></tr><tr><td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,.06);text-align:center;"><p style="font-size:11px;color:#4A4035;margin:0;">Royal Palace Resort · Staff Portal · ${new Date().getFullYear()}</p></td></tr></table></td></tr></table></body></html>`;
 
-        <!-- Header -->
-        <tr>
-          <td style="background:linear-gradient(135deg,#1A1610 0%,#221E14 100%);padding:32px 40px;border-bottom:1px solid rgba(201,168,76,.15);text-align:center;">
-            <p style="margin:0 0 4px;font-size:11px;color:#C9A84C;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;">Royal Palace Resort</p>
-            <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#F5ECD7;">Welcome to the Team ${emoji}</h1>
-          </td>
-        </tr>
-
-        <!-- Body -->
-        <tr>
-          <td style="padding:32px 40px;">
-            <p style="font-size:15px;color:#C8BAA0;margin:0 0 24px;">
-              Hi <strong style="color:#F5ECD7;">${staff.staff_name}</strong>,<br/>
-              Your staff account has been created at <strong style="color:#C9A84C;">Royal Palace Resort</strong>.
-              You can now log in to the staff portal using the credentials below.
-            </p>
-
-            <!-- Designation badge -->
-            <div style="text-align:center;margin-bottom:28px;">
-              <span style="display:inline-block;padding:8px 20px;border-radius:30px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);font-size:13px;font-weight:700;color:#C9A84C;letter-spacing:0.08em;">
-                ${emoji} ${staff.designation}
-              </span>
-            </div>
-
-            <!-- Credentials box -->
-            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:20px 24px;margin-bottom:24px;">
-              <p style="font-size:10px;font-weight:800;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Your Login Credentials</p>
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">
-                    <span style="font-size:12px;color:#6B6054;">Email</span>
-                  </td>
-                  <td style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);text-align:right;">
-                    <span style="font-size:13px;font-weight:600;color:#F5ECD7;">${staff.email}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;">
-                    <span style="font-size:12px;color:#6B6054;">Temporary Password</span>
-                  </td>
-                  <td style="padding:8px 0;text-align:right;">
-                    <span style="font-size:15px;font-weight:800;color:#C9A84C;letter-spacing:0.15em;font-family:monospace;">${tempPassword}</span>
-                  </td>
-                </tr>
-              </table>
-            </div>
-
-            <!-- Details box -->
-            <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px 24px;margin-bottom:28px;">
-              <p style="font-size:10px;font-weight:800;color:#6B6054;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 14px;">Your Details</p>
-              ${[
-                ["Joining Date: ", joiningDate],
-                ["Shift: ",        staff.shift],
-                ["Phone: ",        staff.phoneno || "—"],
-              ].map(([l,v]) => `
-                <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-                  <span style="font-size:12px;color:#6B6054;">${l}</span>
-                  <span style="font-size:12px;font-weight:600;color:#C8BAA0;">${v}</span>
-                </div>`).join("")}
-            </div>
-
-            <!-- Warning -->
-            <div style="background:rgba(224,168,82,.08);border:1px solid rgba(224,168,82,.25);border-radius:10px;padding:14px 18px;margin-bottom:28px;">
-              <p style="font-size:12px;color:#E0A852;margin:0;">
-                ⚠️ <strong>Important:</strong> Please change your password after your first login for security.
-              </p>
-            </div>
-
-            <!-- CTA -->
-            <div style="text-align:center;margin-bottom:8px;">
-              <a href="${loginUrl}"
-                style="display:inline-block;padding:13px 36px;background:linear-gradient(135deg,#C9A84C,#E0C06A);color:#0E0C09;font-size:14px;font-weight:800;text-decoration:none;border-radius:10px;letter-spacing:0.05em;">
-                Login to Staff Portal →
-              </a>
-            </div>
-          </td>
-        </tr>
-
-        <!-- Footer -->
-        <tr>
-          <td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,.06);text-align:center;">
-            <p style="font-size:11px;color:#4A4035;margin:0;">
-              Royal Palace Resort · Staff Portal · ${new Date().getFullYear()}
-            </p>
-          </td>
-        </tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-
-  await transporter.sendMail({
-    from:    `"Royal Palace Resort" <${process.env.EMAIL_FROM}>`,
-    to:      staff.email,
-    subject: `Welcome to Royal Palace Resort — Your Staff Login Details`,
-    html,
-  });
+  await sendEmail(staff.email, `Welcome to Royal Palace Resort — Your Staff Login Details`, html);
+  console.log("✅ Staff welcome email sent to:", staff.email);
 };
