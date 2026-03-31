@@ -1,10 +1,10 @@
 // src/pages/auth/Register.jsx
-// Fully responsive — fluid card, OTP boxes scale, form row collapses on mobile,
-// step connector adapts, toast stays centred at all widths
 import React, { useState, useRef, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import axios from "axios"
 import SlideshowBg from "../../components/SlideshowBg"
+
+const API = import.meta.env.VITE_API_URL || "https://resort-management-system.onrender.com/api"
 
 /* ── Icons ── */
 const IconPerson = ({ color }) => (
@@ -57,7 +57,7 @@ const IconCity = ({ color }) => (
   </svg>
 )
 
-/* ── OTP boxes — responsive sizes ── */
+/* ── OTP boxes ── */
 function OtpBoxes({ value, onChange, disabled }) {
   const inputs = useRef([])
   const digits = (value + "      ").slice(0, 6).split("")
@@ -165,7 +165,7 @@ function PasswordField({ label, name, value, onChange, required }) {
   )
 }
 
-/* ── Step Indicator — connector adapts to available width ── */
+/* ── Step Indicator ── */
 function Steps({ current }) {
   const labels = ["Your Details", "Verify Email"]
   return (
@@ -229,7 +229,7 @@ export default function Register() {
   const handleSendOtp = async (e) => {
     e.preventDefault(); setError(""); setLoading(true)
     try {
-      await axios.post("http://resort-management-system.onrender.com/api/customer/send-otp", { email:form.email })
+      await axios.post(`${API}/customer/send-otp`, { email: form.email })
       setStep(1); setCountdown(60)
     } catch (err) { setError(err.response?.data?.message || "Failed to send OTP") }
     finally { setLoading(false) }
@@ -239,7 +239,7 @@ export default function Register() {
     if (countdown > 0) return
     setError(""); setLoading(true)
     try {
-      await axios.post("http://resort-management-system.onrender.com/api/customer/send-otp", { email:form.email })
+      await axios.post(`${API}/customer/send-otp`, { email: form.email })
       setOtp(""); setCountdown(60); showToast("Verification code resent to your inbox")
     } catch (err) { setError(err.response?.data?.message || "Resend failed") }
     finally { setLoading(false) }
@@ -250,7 +250,7 @@ export default function Register() {
     if (otp.length !== 6) { setError("Please enter the complete 6-digit code"); return }
     setError(""); setLoading(true)
     try {
-      const res = await axios.post("http://resort-management-system.onrender.com/api/customer/verify-otp", { ...form, otp })
+      const res = await axios.post(`${API}/customer/verify-otp`, { ...form, otp })
       localStorage.setItem("token", res.data.token)
       localStorage.setItem("role", res.data.role)
       localStorage.setItem("name", res.data.name)
@@ -281,7 +281,6 @@ export default function Register() {
           position:relative; overflow:hidden;
         }
 
-        /* Fluid card */
         .rp-card {
           width:100%; max-width:500px; position:relative; z-index:20;
           background:rgba(12,6,2,0.55);
@@ -315,7 +314,6 @@ export default function Register() {
 
         .rp-fields { display:flex; flex-direction:column; gap:12px; }
 
-        /* 2-col row — collapses to 1 col on small phones */
         .rp-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
         @media (max-width:420px) { .rp-row { grid-template-columns:1fr; } }
 
@@ -353,7 +351,6 @@ export default function Register() {
           border-radius:6px; margin-bottom:18px; line-height:1.5; animation:fadeUp 0.2s ease;
         }
 
-        /* Toast — stays centred and doesn't overflow on small screens */
         .rp-toast {
           position:fixed; bottom:clamp(16px,3vw,30px); left:50%;
           transform:translateX(-50%); max-width:calc(100vw - 32px);
