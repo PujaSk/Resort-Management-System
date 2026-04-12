@@ -45,10 +45,10 @@ const PAYMENT_CONFIG = {
 }
 
 const TABS = [
-  { key:"upcoming",  label:"Upcoming",  icon:<CalendarIcon size={14}/> },
-  { key:"active",    label:"Active",    icon:<BookingIcon size={13}/> },
-  { key:"past",      label:"Past",      icon:<PastIcon size={13}/> },
-  { key:"cancelled", label:"Cancelled", icon:<CancelIcon size={14}/>  },
+  { key:"upcoming",  label:"Upcoming",  icon:"🗓" },
+  { key:"active",    label:"Active",    icon:"🏨" },
+  { key:"past",      label:"Past",      icon:"📋" },
+  { key:"cancelled", label:"Cancelled", icon:"✕"  },
 ]
 
 const classifyItem = (item) => {
@@ -71,20 +71,55 @@ function Spinner({ size = 14, color = "white" }) {
   )
 }
 
+/* ─── Decorative key SVG ─── */
+/* ─── Inject keyframe once ─── */
+if (typeof document !== "undefined" && !document.getElementById("key-anim-style")) {
+  const s = document.createElement("style")
+  s.id = "key-anim-style"
+  s.textContent = `
+    @keyframes key-breathe {
+      0%   { transform: scale(1)    translateZ(0); }
+      50%  { transform: scale(1.06) translateZ(0); }
+      100% { transform: scale(1)    translateZ(0); }
+    }
+  `
+  document.head.appendChild(s)
+}
+
+function KeyDecoSVG() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 -10 64 640"
+      style={{
+        display: "block",
+        width: "clamp(180px, 24vw, 250px)",
+        height: "auto",
+        opacity: 0.13,
+        transformOrigin: "top right",
+        animation: "key-breathe 8s ease-in-out infinite",
+      }}
+    >
+      <path
+        fill="#C9A84C"
+        d="M55.211 13.856c1.809-1.026 3.027-2.95 3.027-5.157c0-3.283-2.695-5.945-6.02-5.945a6.03 6.03 0 0 0-5.225 2.989A7.49 7.49 0 0 0 40.486 2c-4.137 0-7.489 3.311-7.489 7.395s3.352 7.395 7.489 7.395q.53 0 1.043-.072l-1.059 1.046l-2.27.038l-.039 2.241l-.65.642l-.174-.173a1.34 1.34 0 0 0-1.869 0l-.117.115a1.3 1.3 0 0 0 0 1.846l.176.173L7.73 50.095l.546.538l-.737.727c-.78-.366-1.613-.329-2.119.17c-.702.693-.504 2.013.441 2.947s2.282 1.13 2.984.437c.507-.5.543-1.322.173-2.093l.736-.728l.545.539l3.841-3.794l1.596 1.577l-4.18 4.126l1.766 1.743l1.09-1.076l1.583 1.563l-1.09 1.076l.884.872l.076.077L19.111 62l3.009-2.973l-3.244-3.203l2.103-2.076l3.166 3.127l2.232-2.205l-3.166-3.127l2.102-2.076l3.322 3.281l3.01-2.973l-3.322-3.281l-.959-.948l-1.092 1.076l-1.582-1.563l1.09-1.076l-1.766-1.743l-4.178 4.126l-1.596-1.575l19.856-19.608l.174.174a1.34 1.34 0 0 0 1.869 0l.117-.115a1.3 1.3 0 0 0 0-1.846l-.176-.174l.65-.641l2.27-.038l.037-2.241l1.061-1.047a7 7 0 0 0-.074 1.031c0 4.084 3.354 7.395 7.488 7.395S59 24.369 59 20.285c0-2.756-1.525-5.156-3.789-6.429m-3.69 11.358a4.993 4.993 0 0 1-4.994-4.995a4.95 4.95 0 0 1 .916-2.868l-1.25-1.241l.516-.51c.779.365 1.613.329 2.119-.17c.701-.693.506-2.014-.441-2.947c-.945-.935-2.281-1.129-2.984-.436c-.506.498-.543 1.322-.172 2.092l-.516.51l-1.25-1.246a4.96 4.96 0 0 1-2.971.999a4.994 4.994 0 1 1 4.994-5.007h3.09a4 4 0 0 1-.063-.635a3.713 3.713 0 1 1 2.998 3.642v2.824l.008-.001a4.993 4.993 0 0 1 4.994 4.994a4.99 4.99 0 0 1-4.994 4.995"
+      />
+    </svg>
+  )
+}
+
 function CancelModal({ target, onConfirm, onClose, loading }) {
   if (!target) return null
   const { booking, singleDate, singleBookingId } = target
   const isHall = booking?._isHallEvent && !!singleDate
   const pricePerDay   = booking?.roomType?.price_per_night || 0
   const dayAmountPaid = booking?.amountPaid || 0
-  const hallIsHalfPay = dayAmountPaid > 0 && dayAmountPaid < pricePerDay
   const hallFee       = hallCancelFee(pricePerDay)
   const hallRefund    = hallCancelRefund(dayAmountPaid, pricePerDay)
   const totalAmount   = booking?.totalAmount || 0
   const amountPaid    = booking?.amountPaid  || 0
   const roomFee       = roomCancelFee(totalAmount)
   const roomRefund    = roomCancelRefund(amountPaid, totalAmount)
-  const isHalfPayment = amountPaid < totalAmount && amountPaid > 0
   const title = isHall
     ? `${booking?.roomType?.type_name} — ${fmtYMD(singleDate)}`
     : `${booking?.roomType?.type_name} · ${fmtDate(booking?.checkInDateTime)}`
@@ -273,15 +308,12 @@ function HallDateRow({ item, onCancel, idx }) {
   const bookingId = item._singleBookingId
   const status    = item._singleStatus || "Booked"
   const cfg       = STATUS_CONFIG[status]   || STATUS_CONFIG["Booked"]
-  const pcfg      = PAYMENT_CONFIG[item.paymentStatus] || PAYMENT_CONFIG["Pending"]
   const pricePerDay = item.roomType?.price_per_night || 0
   const allDates    = item._hallDatesInfo   || []
   const totalDays   = item._hallEventDates?.length || allDates.length
   const canCancel   = status === "Booked" && !isDatePast(date)
   const isCancelled = status === "Cancelled"
   const amountPaid  = item.amountPaid || 0
-  const amountDue   = item.amountDue  || 0
-  const isHalfPay   = amountPaid > 0 && amountDue > 0
   const cancelFee    = item.cancellationFee    || (isCancelled ? hallCancelFee(pricePerDay) : 0)
   const cancelRefund = item.cancellationRefund || (isCancelled ? hallCancelRefund(amountPaid, pricePerDay) : 0)
 
@@ -298,7 +330,6 @@ function HallDateRow({ item, onCancel, idx }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor=isCancelled?"rgba(248,113,113,.1)":"rgba(201,168,76,.14)"; e.currentTarget.style.boxShadow="none" }}
     >
       <div style={{ display:"flex" }}>
-        {/* Thumbnail — narrower on mobile */}
         <div style={{ width:"clamp(56px,12vw,76px)", flexShrink:0, minHeight:104,
           background: item.roomType?.images?.[0] ? "transparent" : "rgba(201,168,76,.05)",
           display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column",
@@ -404,7 +435,6 @@ function BookingCard({ booking, onCancel, idx }) {
   const amountPaid   = booking.amountPaid  || 0
   const cancelFee    = booking.cancellationFee    ?? roomCancelFee(totalAmount)
   const cancelRefund = booking.cancellationRefund ?? roomCancelRefund(amountPaid, totalAmount)
-  const isHalfPay    = amountPaid < totalAmount && amountPaid > 0
 
   const cfg  = STATUS_CONFIG[booking.bookingStatus] || STATUS_CONFIG["Booked"]
   const pcfg = PAYMENT_CONFIG[booking.paymentStatus] || PAYMENT_CONFIG["Pending"]
@@ -585,17 +615,15 @@ export default function MyBookings() {
         background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);
         background-size:400px 100%; animation:shimmer 1.4s infinite; border-radius:8px;
       }
-
-      /* Responsive page layout */
       .mb-page { padding: 0 0 80px; }
       .mb-header { padding: clamp(32px,5vw,48px) clamp(16px,4vw,40px) 0; max-width: 880px; margin: 0 auto; }
       .mb-body   { max-width: 880px; margin: 0 auto; padding: 0 clamp(16px,4vw,40px); }
-
-      /* Tab scroll on mobile */
       .mb-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 1px; }
       .mb-tabs::-webkit-scrollbar { display: none; }
       .mb-tabs { -ms-overflow-style: none; scrollbar-width: none; }
       .mb-tab { flex-shrink: 0; }
+      .mb-deco { display: none; }
+      @media (min-width: 640px) { .mb-deco { display: block; } }
     `
     document.head.appendChild(s)
   }, [])
@@ -663,26 +691,24 @@ export default function MyBookings() {
   }, [loading, tabMap])
 
   return (
-    <div className="mb-page" style={{ minHeight:"100vh", background:"#0E0C09", position:"relative", overflow:"hidden" }}>
-      {/* Decorative SVGs hidden on mobile */}
-      <style>{`
-        .mb-deco { display: none; }
-        @media (min-width: 640px) { .mb-deco { display: block; } }
-      `}</style>
-      <div className="mb-deco" style={{ position:"fixed", top:-10, right:-10, pointerEvents:"none", zIndex:0 }}>
-        <svg viewBox="0 0 500 340" xmlns="http://www.w3.org/2000/svg"
-          style={{ display:"block", width:"clamp(200px,35vw,420px)", height:"auto", opacity:0.12 }}>
-          <g fill="none" stroke="#C9A84C" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="268" cy="145" r="44" strokeWidth="2.8"/><circle cx="268" cy="145" r="31" strokeWidth="1.5" opacity=".55"/>
-            <circle cx="218" cy="188" r="30" strokeWidth="2.6"/><circle cx="218" cy="188" r="17" strokeWidth="1.6"/>
-            <path d="M196 208 L110 285" strokeWidth="2.6"/>
-            <path d="M312 221 L312 295M312 242 L325 242" strokeWidth="2.4"/>
-          </g>
-        </svg>
+    <div className="mb-page" style={{ minHeight:"100vh", background:"#0E0C09", position:"relative" }}>
+
+      {/* ── Decorative key icon — top right, hidden on mobile ── */}
+      <div
+        className="mb-deco"
+        style={{
+          position: "fixed",
+          top: 60,
+          right: 24,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <KeyDecoSVG />
       </div>
 
       {/* ── Header ── */}
-      <div className="mb-header" style={{ borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+      <div className="mb-header" style={{ borderBottom:"1px solid rgba(255,255,255,.06)", position:"relative", zIndex:1 }}>
         <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between",
           flexWrap:"wrap", gap:12, marginBottom:20 }}>
           <div>
@@ -699,7 +725,7 @@ export default function MyBookings() {
           }}>+ New Booking</button>
         </div>
 
-        {/* Tabs — horizontally scrollable on mobile */}
+        {/* Tabs */}
         <div className="mb-tabs">
           {TABS.map(tab => {
             const count  = tabMap[tab.key]?.length || 0
@@ -717,7 +743,7 @@ export default function MyBookings() {
                 display:"flex", alignItems:"center", gap:5, transition:"color .2s",
                 whiteSpace:"nowrap",
               }}>
-                <span style={{ fontSize:11 }}>{tab.icon}</span>
+                <span style={{ fontSize:13, lineHeight:1 }}>{tab.icon}</span>
                 {tab.label}
                 {count > 0 && (
                   <span style={{ background: active ? "rgba(201,168,76,.2)" : "rgba(255,255,255,.07)",
@@ -733,7 +759,7 @@ export default function MyBookings() {
       </div>
 
       {/* ── Content ── */}
-      <div className="mb-body">
+      <div className="mb-body" style={{ position:"relative", zIndex:1 }}>
         <div style={{ background:"#161410", borderRadius:"0 16px 16px 16px",
           border:"1px solid rgba(201,168,76,.15)", borderTop:"none",
           padding:"clamp(16px,2.5vw,24px)", minHeight:200 }}>
