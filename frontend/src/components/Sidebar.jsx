@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { NavLink, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import CrownIcon from "../components/ui/Crown"
-import { BroomIcon } from "../components/ui/Icons"
+import { BroomIcon, FeedbackIcon } from "../components/ui/Icons"
 
 /* ══════════════════════════════════════
    SVG ICONS
@@ -36,14 +36,6 @@ const IC = {
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
   ),
-  // Housekeeping: () => (
-  //   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-  //     <path d="M3 22l4-4"/>
-  //     <path d="M7 18l9-9"/>
-  //     <path d="M14 3l7 7-2 2-7-7 2-2z"/>
-  //     <path d="M5 16l3 3"/>
-  //   </svg>
-  // ),
   Housekeeping: () => <BroomIcon size={16}/>,
   Booking: () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -52,6 +44,7 @@ const IC = {
       <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
     </svg>
   ),
+  Feedback: () => <FeedbackIcon size={16} color="currentColor" />,
   Customer: () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -116,9 +109,12 @@ const ADMIN_NAV = [
     { to: "/admin/room-facilities", Icon: IC.Facilities,   label: "Facilities" },
     { to: "/admin/housekeeping",    Icon: IC.Housekeeping, label: "House Keeping" },
   ]},
+  // ── Feedback added here under Bookings ──────────────────────────────────────
   { section: "Bookings", items: [
     { to: "/admin/room-booking",    Icon: IC.Booking,      label: "Room Booking" },
+    { to: "/admin/feedback",        Icon: IC.Feedback,     label: "Feedback" },
   ]},
+  // ───────────────────────────────────────────────────────────────────────────
   { section: "People", items: [
     { to: "/admin/manage-customer", Icon: IC.Customer,     label: "Manage Customer" },
     { to: "/admin/manage-staff",    Icon: IC.Staff,        label: "Manage Staff" },

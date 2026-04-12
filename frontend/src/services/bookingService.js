@@ -10,6 +10,7 @@ export const checkIn                    = (id, data)     => api.put(`/bookings/c
 export const checkOut                   = (id, data)     => api.put(`/bookings/checkout/${id}`, data)
 export const submitFeedback             = (id, data)     => api.post(`/bookings/${id}/feedback`, data)
 export const getPublicTestimonials      = ()             => api.get("/bookings/testimonials/public")
+export const getAllFeedback             = ()             => api.get("/bookings/admin/feedback")   // ← NEW
 
 /* ── Room switch ── */
 export const getAvailableRoomsForSwitch = (id)           => api.get(`/bookings/${id}/available-rooms-for-switch`)

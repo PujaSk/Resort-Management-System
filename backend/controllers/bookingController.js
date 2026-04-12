@@ -973,3 +973,29 @@ exports.getPublicTestimonials = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+/* ══════════════════════════════════════════════
+   GET ALL FEEDBACK  (admin only)
+   Add this to bookingController.js
+══════════════════════════════════════════════ */
+exports.getAllFeedback = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      "feedback.rating": { $exists: true },
+    })
+      .populate("customer", "name email phoneno city")
+      .populate("roomType", "type_name price_per_night images")
+      .populate("room", "room_number floor")
+      .select(
+        "feedback roomType room customer bookingStatus checkInDateTime checkOutDateTime actualCheckInTime actualCheckOutDate totalAmount"
+      )
+      .sort({ "feedback.submittedAt": -1 });
+
+    res.json(bookings);
+  } catch (err) {
+    console.error("getAllFeedback error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
