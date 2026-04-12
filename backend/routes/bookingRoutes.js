@@ -23,6 +23,7 @@ router.put("/cancel/:id",     protect, authorizeRoles("admin", "staff", "custome
 router.get( "/",              protect, authorizeRoles("admin", "staff"),             ctrl.getAllBookings);
 router.put( "/checkin/:id",   protect, authorizeRoles("admin", "staff"),             ctrl.checkIn);
 router.put( "/checkout/:id",  protect, authorizeRoles("admin", "staff"),             ctrl.checkOut);
+router.get("/admin/feedback", protect, authorizeRoles("admin"), ctrl.getAllFeedback);
 
 /* ── Room switch ────────────────────────────────────────────────────────────── */
 router.get( "/:id/available-rooms-for-switch",

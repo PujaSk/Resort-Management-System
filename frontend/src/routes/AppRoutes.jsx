@@ -27,6 +27,7 @@ import ManageServices     from "../pages/admin/pages/ManageServices"
 import Transaction        from "../pages/admin/pages/Transaction"
 import Reports            from "../pages/admin/pages/Reports"
 import AdminProfile       from "../pages/admin/pages/AdminProfile"
+import Feedback           from "../pages/admin/pages/Feedback"          // ← NEW
 
 // Staff pages
 import StaffLayout        from "../layouts/StaffLayout"
@@ -70,6 +71,7 @@ export default function AppRoutes() {
           <Route path="transaction"           element={<Transaction />} />
           <Route path="reports"               element={<Reports />} />
           <Route path="profile"               element={<AdminProfile />} />
+          <Route path="feedback"              element={<Feedback />} />   {/* ← NEW */}
         </Route>
 
         {/* Staff */}
