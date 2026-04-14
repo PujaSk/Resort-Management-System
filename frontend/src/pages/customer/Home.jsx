@@ -2,9 +2,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 
-/* ══════════════════════════════════════════════
-   GLOBAL CSS
-══════════════════════════════════════════════ */
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -111,11 +108,9 @@ const GLOBAL_CSS = `
   @media(min-width:640px) { .section-inner { padding: 0 32px; } }
   @media(min-width:1024px) { .section-inner { padding: 0 40px; } }
 
-  /* ── HEADING responsive ── */
   .section-heading { margin-bottom: 36px; }
   @media(min-width:768px) { .section-heading { margin-bottom: 60px; } }
 
-  /* ── 2-col grid that stacks on mobile ── */
   .two-col-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -123,13 +118,9 @@ const GLOBAL_CSS = `
     align-items: center;
   }
   @media(min-width:768px) {
-    .two-col-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-    }
+    .two-col-grid { grid-template-columns: 1fr 1fr; gap: 60px; }
   }
 
-  /* ── Banquet grid: image goes above text on mobile ── */
   .banquet-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -137,16 +128,11 @@ const GLOBAL_CSS = `
     align-items: start;
   }
   @media(min-width:768px) {
-    .banquet-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 70px;
-    }
+    .banquet-grid { grid-template-columns: 1fr 1fr; gap: 70px; }
   }
-  /* Swap order so image shows first on mobile */
   .banquet-image-col { order: -1; }
   @media(min-width:768px) { .banquet-image-col { order: unset; } }
 
-  /* ── Facility cards grid ── */
   .fac-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -161,10 +147,10 @@ const GLOBAL_CSS = `
     display: flex;
     gap: 28px;
     justify-content: center;
-    margin-top: 64px;
+    margin-top: 80px;
     flex-wrap: wrap;
   }
-  @media(min-width:640px) { .hero-stats { gap: 48px; margin-top: 100px; } }
+  @media(min-width:640px) { .hero-stats { gap: 48px; margin-top: 160px; } }
 
   /* ── Hero buttons ── */
   .hero-btns {
@@ -174,28 +160,18 @@ const GLOBAL_CSS = `
     justify-content: center;
   }
 
-  /* ── Room showcase nav dots ── */
   .room-dots { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-
-  /* ── Testimonial ── */
   .testimonial-quote { font-size: clamp(0.95rem, 2.5vw, 1.2rem); }
 
-  /* ── CTA buttons ── */
-  .cta-btn {
-    padding: 14px 30px;
-    font-size: 11px;
-  }
-  @media(min-width:640px) {
-    .cta-btn { padding: 16px 42px; font-size: 12px; }
-  }
+  .cta-btn { padding: 14px 30px; font-size: 11px; }
+  @media(min-width:640px) { .cta-btn { padding: 16px 42px; font-size: 12px; } }
 
-  /* side nav arrows — hide on very small screens */
-  .section-nav-btn {
-    display: none;
-  }
-  @media(min-width:480px) {
-    .section-nav-btn { display: flex; }
-  }
+  .section-nav-btn { display: none; }
+  @media(min-width:480px) { .section-nav-btn { display: flex; } }
+
+  /* ── Hide scroll indicator on mobile, show on desktop ── */
+  .hero-scroll { display: none; }
+  @media(min-width:768px) { .hero-scroll { display: flex; } }
 `
 
 function useScrollReveal(dep) {
@@ -407,8 +383,6 @@ function RoomShowcase({ rooms }) {
       <Heading eyebrow="Curated Accommodations" title="Rooms & Suites"/>
       <div className="section-inner">
         <div className="two-col-grid">
-
-          {/* IMAGE SIDE */}
           <div style={{ position:"relative", opacity:visible?1:0, transform:visible?"translateX(0) scale(1)":`translateX(${direction*-40}px) scale(0.96)`, transition:"opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)" }}>
             <div style={{ position:"absolute",inset:"-1px",borderRadius:"16px",border:`1px solid ${accent}40`,boxShadow:`0 0 60px ${accent}18, 0 40px 80px rgba(0,0,0,0.6)` }}/>
             <Brackets accent={accent}/>
@@ -425,9 +399,7 @@ function RoomShowcase({ rooms }) {
             {tag && <div style={{ position:"absolute",top:"16px",left:"16px",background:`${accent}22`,border:`1px solid ${accent}50`,borderRadius:"20px",padding:"5px 14px",fontSize:"10px",letterSpacing:"0.2em",textTransform:"uppercase",color:accent,fontFamily:"'Cormorant Garamond',serif" }}>{tag}</div>}
           </div>
 
-          {/* TEXT SIDE */}
           <div style={{ opacity:visible?1:0, transform:visible?"translateX(0)":`translateX(${direction*40}px)`, transition:"opacity 0.5s cubic-bezier(0.4,0,0.2,1) 0.06s, transform 0.5s cubic-bezier(0.4,0,0.2,1) 0.06s" }}>
-            {/* Dots */}
             <div className="room-dots">
               {rooms.map((_,i) => <button key={i} onClick={() => go(i, i > active ? 1 : -1)} style={{ width:i===active?"32px":"8px",height:"3px",background:i===active?accent:"rgba(255,255,255,0.15)",border:"none",borderRadius:"2px",cursor:"pointer",transition:"all 0.4s",padding:0 }}/>)}
               <span style={{ fontSize:"11px",color:"rgba(255,255,255,0.25)",marginLeft:"6px",fontFamily:"'Cormorant Garamond',serif",letterSpacing:"0.1em" }}>{String(active+1).padStart(2,"0")} / {String(rooms.length).padStart(2,"0")}</span>
@@ -447,8 +419,6 @@ function RoomShowcase({ rooms }) {
           </div>
         </div>
       </div>
-
-      {/* Side nav arrows — only on wider screens (CSS hides on small) */}
       <button className="section-nav-btn" onClick={() => go((active-1+rooms.length)%rooms.length,-1)} style={{ position:"absolute",left:"8px",top:"50%",transform:"translateY(-50%)",width:"44px",height:"44px",borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",color:"#c9a96e",cursor:"pointer",alignItems:"center",justifyContent:"center",fontSize:"18px",transition:"all 0.2s" }}>‹</button>
       <button className="section-nav-btn" onClick={() => go((active+1)%rooms.length,1)} style={{ position:"absolute",right:"8px",top:"50%",transform:"translateY(-50%)",width:"44px",height:"44px",borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",color:"#c9a96e",cursor:"pointer",alignItems:"center",justifyContent:"center",fontSize:"18px",transition:"all 0.2s" }}>›</button>
     </section>
@@ -493,8 +463,6 @@ function BanquetSection({ halls }) {
       <Heading eyebrow="Grand Events" title="Banquet Halls" subtitle="Magnificent spaces for weddings, conferences & royal celebrations"/>
       <div className="section-inner">
         <div className="banquet-grid">
-
-          {/* TEXT col */}
           <div style={Lanim}>
             <div style={{ display:"flex",alignItems:"center",gap:"10px",marginBottom:"18px" }}>
               {halls.map((_,i)=><button key={i} onClick={()=>go(i,i>active?1:-1)} style={{ width:i===active?"32px":"8px",height:"3px",background:i===active?accent:"rgba(255,255,255,.15)",border:"none",borderRadius:"2px",cursor:"pointer",transition:"all .4s",padding:0 }}/>)}
@@ -509,7 +477,6 @@ function BanquetSection({ halls }) {
             <Link to={`/banquet/${hall._id}`} className="btn-g" style={{ padding:"13px 26px",borderRadius:"8px",background:`linear-gradient(135deg,${accent} 0%,#8a6a30 100%)`,color:"#0e0c09",fontWeight:700,fontSize:"12px",letterSpacing:"0.2em",textTransform:"uppercase",textDecoration:"none",fontFamily:"'Cormorant Garamond',serif",boxShadow:`0 6px 24px ${accent}30`,display:"inline-flex",alignItems:"center",gap:"6px" }}>Enquire & Book <span style={{fontSize:"15px"}}>→</span></Link>
           </div>
 
-          {/* IMAGE col — goes first on mobile via CSS order */}
           <div className="banquet-image-col" style={{ position:"relative",...Ranim }}>
             <div style={{ position:"absolute",inset:"-1px",borderRadius:"16px",border:`1px solid ${accent}40`,boxShadow:`0 0 60px ${accent}18, 0 40px 80px rgba(0,0,0,.6)` }}/>
             <Brackets accent={accent}/>
@@ -610,16 +577,60 @@ function CTABanner() {
   )
 }
 
+/* ══════════════════════════════════════════════
+   ANIMATED STAT
+══════════════════════════════════════════════ */
+function AnimatedStat({ target, suffix, duration = 2000 }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const started = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true
+          let startTime = null
+          const step = (ts) => {
+            if (!startTime) startTime = ts
+            const progress = Math.min((ts - startTime) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            setCount(Math.floor(eased * target))
+            if (progress < 1) requestAnimationFrame(step)
+          }
+          requestAnimationFrame(step)
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [target, duration])
+
+  return (
+    <div ref={ref} className="stat-num" style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.5rem,3vw,2rem)", fontWeight:700, color:"#f5edd8" }}>
+      {count}{suffix}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   HERO VIDEO
+══════════════════════════════════════════════ */
 function HeroVideo() {
   return (
-    <section style={{ position:"relative", minHeight:"100vh", width:"100%", maxWidth:"100vw", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden" }}>
+    <section style={{
+      position:"relative", minHeight:"100vh", width:"100%", maxWidth:"100vw",
+      display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
+    }}>
       <video autoPlay muted loop playsInline style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0,objectPosition:"center 30%",transform:"scale(1.15)",transformOrigin:"center center" }}>
         <source src="/landing_page_video.mp4" type="video/mp4"/>
       </video>
       <div style={{ position:"absolute",inset:0,zIndex:1,background:"linear-gradient(to bottom,rgba(5,3,1,.55) 0%,rgba(8,5,2,.44) 50%,rgba(5,3,1,.78) 100%)" }}/>
       <div style={{ position:"absolute",inset:0,zIndex:2,background:"radial-gradient(ellipse at 50% 50%,rgba(201,169,110,.05) 0%,transparent 65%)",pointerEvents:"none" }}/>
 
-      {/* Floating particles — reduce on mobile for perf */}
       {[{x:"20%",y:"25%",s:3,a:"float1 6s ease-in-out infinite"},{x:"75%",y:"35%",s:2,a:"float2 8s ease-in-out infinite 1s"},{x:"45%",y:"70%",s:4,a:"float3 7s ease-in-out infinite 2s"}].map((p,i)=>(
         <div key={i} style={{ position:"absolute",left:p.x,top:p.y,zIndex:3,width:p.s*2,height:p.s*2,borderRadius:"50%",background:"#c9a96e",animation:p.a }}/>
       ))}
@@ -652,16 +663,27 @@ function HeroVideo() {
         </div>
 
         <div className="hero-d5 hero-stats">
-          {[["250+","Luxury Rooms"],["98%","Guest Satisfaction"],["15","Awards Won"]].map(([num,label],i)=>(
+          {[
+            { target:250, suffix:"+", label:"Luxury Rooms"      },
+            { target:98,  suffix:"%", label:"Guest Satisfaction" },
+            { target:15,  suffix:"",  label:"Awards Won"         },
+          ].map(({ target, suffix, label }, i) => (
             <div key={i} className="stat-item" style={{ textAlign:"center" }}>
-              <div className="stat-num" style={{ fontFamily:"'Playfair Display',serif",fontSize:"clamp(1.5rem,3vw,2rem)",fontWeight:700,color:"#f5edd8" }}>{num}</div>
+              <AnimatedStat target={target} suffix={suffix} duration={1800 + i * 200} />
               <div style={{ fontSize:"10px",letterSpacing:"0.22em",textTransform:"uppercase",color:"rgb(183,180,176)",fontFamily:"'Cormorant Garamond',serif" }}>{label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ position:"absolute",bottom:"28px",left:"50%",transform:"translateX(-50%)",zIndex:10,animation:"scrollBounce 2s ease-in-out infinite",display:"flex",flexDirection:"column",alignItems:"center",gap:"8px" }}>
+      {/* Scroll indicator — hidden on mobile via .hero-scroll CSS class */}
+      <div className="hero-scroll" style={{
+        position:"absolute", bottom:"60px", left:"50%",
+        transform:"translateX(-50%)", zIndex:10,
+        animation:"scrollBounce 2s ease-in-out infinite",
+        flexDirection:"column", alignItems:"center",
+        gap:"8px", pointerEvents:"none",
+      }}>
         <span style={{ fontSize:"9px",letterSpacing:"0.35em",color:"rgb(201,169,110)",textTransform:"uppercase",fontFamily:"'Cormorant Garamond',serif" }}>Scroll</span>
         <div style={{ width:"1px",height:"44px",background:"linear-gradient(to bottom,rgb(201,169,110),transparent)" }}/>
       </div>
@@ -669,6 +691,9 @@ function HeroVideo() {
   )
 }
 
+/* ══════════════════════════════════════════════
+   ROOT EXPORT
+══════════════════════════════════════════════ */
 export default function Home() {
   const [rooms, setRooms] = useState(FALLBACK_ROOMS)
   const [facilities, setFacilities] = useState(FALLBACK_FACILITIES)
