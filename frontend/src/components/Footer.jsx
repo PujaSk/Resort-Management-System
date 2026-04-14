@@ -1,8 +1,8 @@
 // src/components/Footer.jsx
-// Responsive — single-column on mobile, 4-column grid on desktop
+// Responsive — optimized mobile layout with nav cols side-by-side
 import React from "react"
 import { Link } from "react-router-dom"
-// import { CrownIcon } from "./ui/Crown"
+import CrownIcon from "./ui/Crown"
 
 const C = { gold:"#C9A84C", cream:"#F5ECD7", dim:"#6B6054", muted:"#8A7E6A" }
 
@@ -18,7 +18,6 @@ const Icons = {
   Mail:     ()=><SVG><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></SVG>,
   MapPin:   ()=><SVG><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></SVG>,
   Clock:    ()=><SVG><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></SVG>,
-  Crown:    ()=><SVG size={22}><path d="M2 20h20"/><path d="M5 20 3 8l4 3 5-7 5 7 4-3-2 12"/><circle cx="12" cy="4" r="1" fill="currentColor"/></SVG>,
   ChevronR: ()=><SVG size={14}><polyline points="9 18 15 12 9 6"/></SVG>,
   Facebook: ()=><SVG size={16}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></SVG>,
   Instagram:()=><SVG size={16}><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></SVG>,
@@ -64,60 +63,65 @@ export default function Footer() {
   return (
     <footer style={{ background:"#0A0804", borderTop:"1px solid rgba(201,168,76,.12)", marginTop:"auto" }}>
 
-      {/* Top CTA strip */}
-      {/* <div style={{
-        background:"linear-gradient(135deg,rgba(201,168,76,.12) 0%,rgba(201,168,76,.04) 100%)",
-        borderBottom:"1px solid rgba(201,168,76,.1)",
-        padding:"28px 20px",
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        flexWrap:"wrap", gap:16,
-      }}>
-        <div>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(18px,3vw,26px)", fontWeight:700, color:C.cream, margin:0 }}>
-            Experience Unmatched Luxury
-          </h2>
-          <p style={{ color:C.muted, marginTop:6, fontSize:13 }}>
-            Book your stay at Royal Palace Resort and create memories that last a lifetime.
-          </p>
-        </div>
-        <Link to="/rooms" style={{
-          display:"inline-flex", alignItems:"center", gap:8,
-          padding:"12px 24px", borderRadius:8, textDecoration:"none",
-          background:"linear-gradient(135deg,#C9A84C,#a8873d)",
-          color:"#0A0804", fontWeight:700, fontSize:13, letterSpacing:"0.04em",
-          boxShadow:"0 4px 20px rgba(201,168,76,.3)", flexShrink:0,
-        }}>
-          Book a Room <Icons.ChevronR />
-        </Link>
-      </div> */}
+      <style>{`
+        /* ── Mobile: brand → [explore | guest] side-by-side → contact ── */
+        .f-main {
+          padding: 36px 20px 28px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .f-brand   { margin-bottom: 28px; }
+        .f-navcols {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 28px;
+        }
+        .f-contact { /* full width */ }
 
-      {/* Main grid — stacks to 1 col on mobile, 2 col on md, 4 col on lg */}
-      <div style={{
-        padding:"40px 20px 32px",
-        display:"grid",
-        gridTemplateColumns:"1fr",
-        gap:32,
-      }}
-        className="footer-grid"
-      >
-        <style>{`
-          @media (min-width: 640px) {
-            .footer-grid { grid-template-columns: 1fr 1fr !important; padding: 44px 32px 36px !important; }
-          }
-          @media (min-width: 1024px) {
-            .footer-grid { grid-template-columns: 2fr 1fr 1fr 1.4fr !important; padding: 52px 40px 40px !important; }
-          }
-        `}</style>
+        /* ── Tablet (640px): slightly more padding ── */
+        @media (min-width: 640px) {
+          .f-main { padding: 44px 32px 36px; }
+        }
 
-        {/* Brand col */}
-        <div>
-          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+        /* ── Desktop (1024px): all 4 cols in one row ── */
+        @media (min-width: 1024px) {
+          .f-main {
+            padding: 52px 40px 40px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.4fr;
+            gap: 40px;
+            align-items: start;
+          }
+          .f-brand   { margin-bottom: 0; }
+          .f-navcols {
+            display: contents; /* unwrap — each child becomes a direct grid column */
+            margin-bottom: 0;
+          }
+          .f-contact { /* direct grid child — no extra styles needed */ }
+        }
+
+        .f-divider { margin: 0 20px; border-top: 1px solid rgba(255,255,255,.05); }
+        .f-bottom  { padding: 16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        @media(min-width:1024px) {
+          .f-divider { margin: 0 40px; }
+          .f-bottom  { padding: 18px 40px; }
+        }
+      `}</style>
+
+      <div className="f-main">
+
+        {/* ── Brand ── */}
+        <div className="f-brand">
+          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
             <div style={{
-              width:38, height:38, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center",
+              width:38, height:38, borderRadius:10,
+              display:"flex", alignItems:"center", justifyContent:"center",
               background:"linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.08))",
               border:"1px solid rgba(201,168,76,.3)", color:C.gold, flexShrink:0,
             }}>
-              <Icons.Crown />
+              <CrownIcon size={22} />
             </div>
             <div>
               <p style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:C.gold, margin:0, lineHeight:1.2 }}>
@@ -128,15 +132,16 @@ export default function Footer() {
               </p>
             </div>
           </div>
-          <p style={{ color:C.muted, fontSize:13, lineHeight:1.85, maxWidth:300 }}>
+          <p style={{ color:C.muted, fontSize:13, lineHeight:1.85, maxWidth:300, margin:0 }}>
             Nestled in the heart of Rajasthan, Royal Palace Resort blends timeless
             heritage with modern luxury — offering guests an unrivalled sanctuary of
             comfort, culture, and elegance.
           </p>
-          <div style={{ display:"flex", gap:10, marginTop:20 }}>
+          <div style={{ display:"flex", gap:10, marginTop:18 }}>
             {SOCIALS.map(({ Icon, href, label }) => (
               <a key={label} href={href} aria-label={label} style={{
-                width:34, height:34, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
+                width:34, height:34, borderRadius:8,
+                display:"flex", alignItems:"center", justifyContent:"center",
                 background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.15)",
                 color:C.dim, textDecoration:"none", transition:"all .2s",
               }}
@@ -148,33 +153,35 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Nav cols */}
-        {NAV_COLS.map(col => (
-          <div key={col.title}>
-            <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase",
-              color:C.gold, marginBottom:16, marginTop:2 }}>
-              {col.title}
-            </p>
-            <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:10 }}>
-              {col.links.map(({ to, label }) => (
-                <li key={label}>
-                  <Link to={to} style={{ color:C.muted, textDecoration:"none", fontSize:13,
-                    display:"inline-flex", alignItems:"center", gap:5, transition:"color .2s" }}
-                    onMouseEnter={e => e.currentTarget.style.color = C.cream}
-                    onMouseLeave={e => e.currentTarget.style.color = C.muted}>
-                    <span style={{ opacity:.4 }}><Icons.ChevronR /></span>
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {/* ── Nav cols: 2-col grid on mobile, unwrapped on desktop ── */}
+        <div className="f-navcols">
+          {NAV_COLS.map(col => (
+            <div key={col.title}>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase",
+                color:C.gold, marginBottom:14, marginTop:0 }}>
+                {col.title}
+              </p>
+              <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:10 }}>
+                {col.links.map(({ to, label }) => (
+                  <li key={label}>
+                    <Link to={to} style={{ color:C.muted, textDecoration:"none", fontSize:13,
+                      display:"inline-flex", alignItems:"center", gap:5, transition:"color .2s" }}
+                      onMouseEnter={e => e.currentTarget.style.color = C.cream}
+                      onMouseLeave={e => e.currentTarget.style.color = C.muted}>
+                      <span style={{ opacity:.4 }}><Icons.ChevronR /></span>
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
 
-        {/* Contact col */}
-        <div>
+        {/* ── Contact ── */}
+        <div className="f-contact">
           <p style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", textTransform:"uppercase",
-            color:C.gold, marginBottom:16, marginTop:2 }}>
+            color:C.gold, marginBottom:14, marginTop:0 }}>
             Contact Us
           </p>
           <ul style={{ listStyle:"none", padding:0, margin:0, display:"flex", flexDirection:"column", gap:12 }}>
@@ -186,23 +193,12 @@ export default function Footer() {
             ))}
           </ul>
         </div>
+
       </div>
 
-      {/* Bottom bar */}
-      <div style={{ borderTop:"1px solid rgba(255,255,255,.05)", margin:"0 20px" }} className="footer-divider" />
-      <style>{`
-        @media(min-width:1024px){ .footer-divider{ margin: 0 40px !important; } }
-      `}</style>
-      <div style={{
-        padding:"16px 20px",
-        display:"flex", alignItems:"center",
-        justifyContent:"space-between", flexWrap:"wrap", gap:10,
-      }}
-        className="footer-bottom"
-      >
-        <style>{`
-          @media(min-width:1024px){ .footer-bottom{ padding: 18px 40px !important; } }
-        `}</style>
+      {/* ── Bottom bar ── */}
+      <div className="f-divider" />
+      <div className="f-bottom">
         <p style={{ color:C.dim, fontSize:12, margin:0 }}>
           © {year} Royal Palace Resort. All rights reserved.
         </p>
@@ -216,6 +212,7 @@ export default function Footer() {
           ))}
         </div>
       </div>
+
     </footer>
   )
 }

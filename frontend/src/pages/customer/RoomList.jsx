@@ -304,7 +304,7 @@ export default function RoomList() {
             Our Rooms &amp; Suites
           </h1>
           <p className="text-resort-muted" style={{ fontSize:"clamp(13px, 2vw, 15px)" }}>
-            {roomTypes.length} room categories available
+            {roomTypes.length -1} room categories available
           </p>
           <input
             placeholder="Search room type..."
