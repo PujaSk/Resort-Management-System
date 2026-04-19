@@ -134,18 +134,15 @@ export default function ManageRooms() {
       render:v=><span className="text-resort-muted">Floor {v}</span> },
     { key:"roomType", label:"Type",
       render:v=><span className="text-cream text-sm">{v?.type_name||"—"}</span> },
-    // FIX: key changed from "roomType" (duplicate) to "price" to avoid React key warnings
     { key:"price", label:"Price/Night",
       render:(_,row)=>row.roomType?.price_per_night
         ? <span className="font-semibold text-cream">{fmtINR(row.roomType.price_per_night)}</span>
         : "—" },
-    // FIX: key changed from "roomType" (duplicate) to "beds" to avoid React key warnings
     { key:"beds", label:"Beds",
       render:(_,row)=>row.roomType?.beds?.length
         ? <div className="flex gap-1 flex-wrap">{row.roomType.beds.map((b,i)=><Pill key={i} label={`${b.count}× ${b.type}`} color="#4ECDC4"/>)}</div>
         : <span className="text-resort-dim">—</span> },
     { key:"liveStatus", label:"Status", render:v=><Badge label={v} variant={v}/> },
-    // FIX: key changed from "_id" (duplicate — _id already used internally) to "actions"
     { key:"actions", label:"Actions",
       render:(_,row)=>(
         <div className="flex gap-2" onClick={e=>e.stopPropagation()}>
@@ -223,64 +220,109 @@ export default function ManageRooms() {
       )}
 
       {tab==="types" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-up d2">
-          {loading
-            ? <p className="text-resort-dim">Loading…</p>
-            : types.length===0
-              ? <div className="col-span-3 text-center py-14 text-resort-dim">
-                  <div className="flex justify-center mb-4"><BookingIcon size={48} color="rgba(201,168,76,.2)"/></div>
-                  <p>No types yet.</p>
+        <div
+          className="anim-up d2"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "16px",
+          }}
+        >
+          {loading ? (
+            <p className="text-resort-dim">Loading…</p>
+          ) : types.length === 0 ? (
+            <div style={{gridColumn:"1 / -1"}} className="text-center py-14 text-resort-dim">
+              <div className="flex justify-center mb-4">
+                <BookingIcon size={48} color="rgba(201,168,76,.2)"/>
+              </div>
+              <p>No types yet.</p>
+            </div>
+          ) : (
+            types.map(t => (
+              <div
+                key={t._id}
+                className="card-p cursor-pointer transition-all duration-200"
+                style={{
+                  borderColor: "rgba(255,255,255,.06)",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(201,168,76,.25)"}
+                onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.06)"}
+                onClick={()=>navigate(`/admin/room-settings`)}
+              >
+                {t.images?.length > 0 && (
+                  <div style={{borderRadius:8,overflow:"hidden",height:140,marginBottom:12,flexShrink:0}}>
+                    <img src={toImgUrl(t.images[0])} alt={t.type_name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-display text-lg font-semibold text-cream">{t.type_name}</h3>
+                  <span className="font-bold text-gold">{fmtINR(t.price_per_night)}</span>
                 </div>
-              : types.map(t=>(
-                <div key={t._id} className="card-p cursor-pointer transition-all duration-200"
-                  style={{borderColor:"rgba(255,255,255,.06)", display:"flex", flexDirection:"column"}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(201,168,76,.25)"}
-                  onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,.06)"}
-                  onClick={()=>navigate(`/admin/room-settings`)}>
-                  {t.images?.length>0 && (
-                    <div style={{borderRadius:8,overflow:"hidden",height:140,marginBottom:12}}>
-                      <img src={toImgUrl(t.images[0])} alt={t.type_name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+
+                <div className="flex flex-col gap-1 text-resort-muted text-sm mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <GuestIcon size={15}/>
+                    <span>{t.capacity} guests</span>
+                  </div>
+                  {t.beds?.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-resort-dim">
+                      <IconBed size={15}/>
+                      <span>{t.beds.map(b=>`${b.count} ${b.type}`).join(", ")}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-display text-lg font-semibold text-cream">{t.type_name}</h3>
-                    <span className="font-bold text-gold">{fmtINR(t.price_per_night)}</span>
-                  </div>
-                  <div className="flex flex-col gap-1 text-resort-muted text-sm mb-2">
-                    <div className="flex items-center gap-1.5"><GuestIcon size={15}/><span>{t.capacity} guests</span></div>
-                    {t.beds?.length>0 && (
-                      <div className="flex items-center gap-1.5 text-resort-dim">
-                        <IconBed size={15}/><span>{t.beds.map(b=>`${b.count} ${b.type}`).join(", ")}</span>
-                      </div>
+                </div>
+
+                {t.description && (
+                  <p className="text-resort-dim text-xs leading-relaxed mb-3 line-clamp-2">
+                    {t.description}
+                  </p>
+                )}
+
+                {t.amenities?.length > 0 && (
+                  <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:12}}>
+                    {t.amenities.slice(0,4).map((a,i)=>(
+                      <AmenityBadge key={i} name={a} size={13} fontSize={11}/>
+                    ))}
+                    {t.amenities.length > 4 && (
+                      <span style={{
+                        display:"inline-flex",alignItems:"center",
+                        padding:"5px 10px",borderRadius:20,fontSize:11,
+                        color:"#6B6054",background:"rgba(255,255,255,.04)",
+                        border:"1px solid rgba(255,255,255,.08)",
+                      }}>
+                        +{t.amenities.length-4} more
+                      </span>
                     )}
                   </div>
-                  {t.description && <p className="text-resort-dim text-xs leading-relaxed mb-3 line-clamp-2">{t.description}</p>}
-                  {t.amenities?.length>0 && (
-                    <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:12}}>
-                      {t.amenities.slice(0,4).map((a,i)=>(<AmenityBadge key={i} name={a} size={13} fontSize={11}/>))}
-                      {t.amenities.length>4 && (
-                        <span style={{display:"inline-flex",alignItems:"center",padding:"5px 10px",borderRadius:20,fontSize:11,color:"#6B6054",background:"rgba(255,255,255,.04)",border:"1px solid rgba(255,255,255,.08)"}}>
-                          +{t.amenities.length-4} more
-                        </span>
-                      )}
+                )}
+
+                {/* Stats bar — mt:auto pins it to the bottom of every card */}
+                <div
+                  className="flex gap-2 pt-3"
+                  style={{marginTop:"auto", borderTop:"1px solid rgba(255,255,255,.05)"}}
+                >
+                  {[
+                    ["Available", enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Available").length, "#52C07A"],
+                    ["Booked",    enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Booked").length,    "#5294E0"],
+                    ["Occupied",  enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Occupied").length,  "#E05252"],
+                  ].map(([l,v,c])=>(
+                    <div key={l} style={{
+                      flex:1,textAlign:"center",padding:"4px 0",borderRadius:6,
+                      background:`${c}08`,border:`1px solid ${c}18`,
+                    }}>
+                      <div style={{fontSize:14,fontWeight:800,color:c}}>{v}</div>
+                      <div style={{fontSize:9,color:"#6B6054"}}>{l}</div>
                     </div>
-                  )}
-                  <div className="flex gap-2 pt-3 mt-auto" style={{borderTop:"1px solid rgba(255,255,255,.05)"}}>
-                    {[
-                      ["Available", enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Available").length, "#52C07A"],
-                      ["Booked",    enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Booked").length,    "#5294E0"],
-                      ["Occupied",  enriched.filter(r=>(r.roomType?._id||r.roomType)===t._id&&r.liveStatus==="Occupied").length,  "#E05252"],
-                    ].map(([l,v,c])=>(
-                      <div key={l} style={{flex:1,textAlign:"center",padding:"4px 0",borderRadius:6,background:`${c}08`,border:`1px solid ${c}18`}}>
-                        <div style={{fontSize:14,fontWeight:800,color:c}}>{v}</div>
-                        <div style={{fontSize:9,color:"#6B6054"}}>{l}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-resort-dim mt-3 text-right">Click to manage →</p>
+                  ))}
                 </div>
-              ))
-          }
+
+                <p className="text-[11px] text-resort-dim mt-3 text-right">Click to manage →</p>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -299,13 +341,10 @@ export default function ManageRooms() {
               setGenForm(prev=>({...prev, floor}))
               if (floor) { try { const res = await getNextRoomNumber(floor); setGenForm(prev=>({...prev, floor, startNumber:res.data.nextNumber})) } catch {} }
             }} required/>
-
-          {/* FIX: was "grid grid-cols-2 gap-3" — Tailwind JIT unreliable inside modals */}
           <div className="form-grid-2">
             <Input label="Start Room #" type="number" placeholder="101" value={genForm.startNumber} onChange={e=>setGenForm({...genForm,startNumber:e.target.value})} required/>
             <Input label="End Room #" type="number" placeholder="110" value={genForm.endNumber} onChange={e=>setGenForm({...genForm,endNumber:e.target.value})} required/>
           </div>
-
           {genForm.startNumber && genForm.endNumber && +genForm.endNumber>=+genForm.startNumber && (
             <div className="px-4 py-3 rounded-xl text-sm font-semibold text-gold"
               style={{background:"rgba(201,168,76,.08)",border:"1px solid rgba(201,168,76,.2)",display:"flex",alignItems:"center",gap:8}}>

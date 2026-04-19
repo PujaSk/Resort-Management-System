@@ -73,12 +73,35 @@ const BOOKING_STATUSES = [
   },
 ]
 
+/* ── Payment split options ── */
+const PAYMENT_SPLITS = [
+  {
+    id: "half",
+    label: "Pay 50% Now",
+    sublabel: "Rest at check-in",
+    badge: "Flexible",
+    badgeColor: "#4ade80",
+    badgeBg: "rgba(74,222,128,0.12)",
+    description: "Collect half upfront to secure the booking. Remaining 50% is due at check-in.",
+  },
+  {
+    id: "full",
+    label: "Pay 100% Now",
+    sublabel: "Fully settled",
+    badge: "Recommended",
+    badgeColor: "#C9A84C",
+    badgeBg: "rgba(201,168,76,0.15)",
+    description: "Collect the full amount now. No payment required on arrival.",
+  },
+]
+
 const EMPTY_FORM = {
   bookingType:"room", bookingStatus:"Booked", customerMode:"existing", customerId:"",
   guestName:"", guestEmail:"", guestPhone:"", guestCity:"", guestAddress:"",
   emailOtpSent:false, emailOtpCode:"", emailVerified:false, otpCooldown:0,
   existingCustomerId:"", roomTypeId:"", checkIn:todayISO(), checkOut:"",
   hallDates:[], adults:1, children:0, guests:[{ name:"", age:"", gender:"" }],
+  splitChoice:"full",
   paymentMethod:"cash", upiId:"", cardNumber:"", cardName:"", expiry:"", cvv:"",
 }
 
@@ -117,6 +140,13 @@ const RESPONSIVE_CSS = `
   }
   @media (min-width: 480px) {
     .rb-pm-grid { gap: 8px; }
+  }
+
+  .rb-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
   }
 
   .rb-mode-row {
@@ -201,6 +231,23 @@ const RESPONSIVE_CSS = `
   }
   @media (max-width: 360px) {
     .rb-card-expiry-row { flex-direction: column; }
+  }
+
+  .rb-split-card {
+    position: relative;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s;
+  }
+  .rb-split-card.selected {
+    background: rgba(201,168,76,.1);
+    border: 1.5px solid rgba(201,168,76,.5);
+  }
+  .rb-split-card:not(.selected) {
+    background: rgba(255,255,255,.02);
+    border: 1.5px solid rgba(255,255,255,.08);
   }
 `
 
@@ -423,10 +470,7 @@ function AdminCancelModal({ booking, onConfirm, onClose, loading }) {
           </p>
         </div>
 
-        <div style={{
-          borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,.07)",
-          marginBottom:18,
-        }}>
+        <div style={{ borderRadius:12, overflow:"hidden", border:"1px solid rgba(255,255,255,.07)", marginBottom:18 }}>
           <div style={{ padding:"10px 16px", background:"rgba(255,255,255,.03)", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
             <p style={{ fontSize:10, fontWeight:700, color:"#6B6054", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>
               {isHall ? "🏛 Hall Booking" : "🛏 Room Booking"} — Ref #{booking._id?.toString().slice(-8).toUpperCase()}
@@ -751,9 +795,15 @@ export default function RoomBooking() {
   },[form.checkIn,form.checkOut,availData,form.bookingType])
 
   const nights = useMemo(()=>{ if(!form.checkIn||!form.checkOut)return 0; return Math.max(0,Math.round((new Date(form.checkOut)-new Date(form.checkIn))/86400000)) },[form.checkIn,form.checkOut])
+
   const totalAmount = selectedType
     ? form.bookingType==="room" ? (selectedType.price_per_night||0)*nights : (selectedType.price_per_night||0)*form.hallDates.length
     : 0
+
+  // Amount actually being collected now based on split
+  const amountNow = form.splitChoice === "half"
+    ? Math.ceil(totalAmount / 2)
+    : totalAmount
 
   const set = patch => setForm(f=>({...f,...patch}))
   const syncGuests = (adults,children) => {
@@ -823,7 +873,9 @@ export default function RoomBooking() {
       if (totalGuests>capacity) errs._capacity=`Room capacity is ${capacity} — you have ${totalGuests} guests`
     }
     if (step===4){
+      if (!form.splitChoice) errs.splitChoice="Select a payment plan"
       if (!form.paymentMethod) errs.paymentMethod="Select a payment method"
+      // cash supports both split options
       if (form.paymentMethod==="upi"&&!form.upiId.includes("@")) errs.upiId="Enter valid UPI ID (e.g. name@upi)"
       if (form.paymentMethod==="credit_card"||form.paymentMethod==="debit_card"){
         if (form.cardNumber.replace(/\s/g,"").length<16) errs.cardNumber="Enter 16-digit card number"
@@ -862,9 +914,11 @@ export default function RoomBooking() {
       const isHallLocal=form.bookingType==="hall"
       const payload = {
         customer:customerId, roomType:form.roomTypeId, adults:form.adults, children:form.children,
-        guests:form.guests.map(g=>({name:g.name.trim(),age:+g.age,gender:g.gender})), amountPaid:totalAmount,
+        guests:form.guests.map(g=>({name:g.name.trim(),age:+g.age,gender:g.gender})),
+        amountPaid: amountNow,  // ← uses split-aware amount
         paymentDetails:{
-          method:form.paymentMethod, splitChoice:"full",
+          method:form.paymentMethod,
+          splitChoice: form.splitChoice,  // ← passes split to backend
           ...(form.paymentMethod==="upi"&&{upiId:form.upiId}),
           ...((form.paymentMethod==="credit_card"||form.paymentMethod==="debit_card")&&{cardNumber:form.cardNumber,cardName:form.cardName,expiry:form.expiry,cvv:form.cvv}),
           ...(isHallLocal&&{isNonContiguous:true,hallDates:form.hallDates}),
@@ -956,7 +1010,6 @@ export default function RoomBooking() {
               <Icon size={18} color={coPayment.method===m.value?"#C9A84C":"#6B6054"}/>
               <div style={{ minWidth:0 }}>
                 <p style={{fontSize:12,fontWeight:700,color:coPayment.method===m.value?"#C9A84C":"#C8BAA0",marginBottom:1}}>{m.label}</p>
-                <p style={{fontSize:10,color:"#6B6054",display:"none"}}>{m.desc}</p>
               </div>
             </button>
           )
@@ -1075,24 +1128,10 @@ export default function RoomBooking() {
     revenue:   bookings.filter(b=>b.bookingStatus!=="Cancelled").reduce((s,b)=>s+(b.amountPaid||0),0),
   }
 
-  /* ════════════════════════════════════
-     TODAY FILTER HELPERS
-  ════════════════════════════════════ */
   const getTodayMidnight = () => {
     const d = new Date(); d.setHours(0,0,0,0); return d
   }
 
-  /**
-   * Check-Ins Today:
-   *   bookingStatus === "Booked"  (not yet checked in)
-   *   AND checkInDateTime <= today  (due today OR overdue from a past date)
-   *   AND checkOutDateTime > today  (stay hasn't fully expired yet)
-   *
-   *   This catches:
-   *   - Guests whose check-in was yesterday (or earlier) but haven't arrived yet
-   *   - Guests whose check-in is today
-   *   Both are actionable — front desk can still check them in.
-   */
   const checkInTodayCount = bookings.filter(b => {
     if (b.bookingStatus !== "Booked") return false
     const ciDate = new Date(b.checkInDateTime); ciDate.setHours(0,0,0,0)
@@ -1101,11 +1140,6 @@ export default function RoomBooking() {
     return ciDate <= today && coDate > today
   }).length
 
-  /**
-   * Check-Outs Today:
-   *   bookingStatus === "Checked-In"  (actively staying)
-   *   AND checkOutDateTime <= today midnight  (due today OR overdue/past)
-   */
   const checkOutTodayCount = bookings.filter(b => {
     if (b.bookingStatus !== "Checked-In") return false
     const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
@@ -1174,7 +1208,6 @@ export default function RoomBooking() {
 
       {tab==="bookings"&&(
         <div className="anim-up d2">
-          {/* Search + status filters */}
           <div className="flex gap-3 mb-3 flex-wrap">
             <input placeholder="Search by ref ID, guest or room…" value={search} onChange={e=>setSearch(e.target.value)} className="f-input flex-1 min-w-48 max-w-sm"/>
             <div className="flex gap-2 flex-wrap">
@@ -1184,11 +1217,6 @@ export default function RoomBooking() {
             </div>
           </div>
 
-          {/* ════════════════════════════════════
-              TODAY FILTERS
-              Check-Ins Today  : status=Booked + checkIn <= today + checkOut > today
-              Check-Outs Today : status=Checked-In + checkOut <= today
-          ════════════════════════════════════ */}
           <div className="flex gap-2 mb-4 flex-wrap items-center">
             <span style={{fontSize:11,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginRight:4}}>Today:</span>
             {[
@@ -1211,7 +1239,6 @@ export default function RoomBooking() {
             )}
           </div>
 
-          {/* Status summary pills */}
           <div className="rb-booking-stats">
             {[{label:"Booked",count:bookings.filter(b=>b.bookingStatus==="Booked").length,color:"#5294E0"},
               {label:"Checked-In",count:bookings.filter(b=>b.bookingStatus==="Checked-In").length,color:"#52C07A"},
@@ -1230,24 +1257,18 @@ export default function RoomBooking() {
               .sort((a,b)=>new Date(a.checkInDateTime)-new Date(b.checkInDateTime))
               .filter(b=>{
                 const todayMidnight = getTodayMidnight()
-
                 if (dayFilter === "checkin-today") {
-                  // Show Booked guests whose check-in is today OR overdue
-                  // but whose checkout hasn't passed yet (still actionable)
                   if (b.bookingStatus !== "Booked") return false
                   const ciDate = new Date(b.checkInDateTime); ciDate.setHours(0,0,0,0)
                   const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
-                  if (ciDate > todayMidnight) return false   // future — not yet due
-                  if (coDate <= todayMidnight) return false  // checkout passed — no point
+                  if (ciDate > todayMidnight) return false
+                  if (coDate <= todayMidnight) return false
                 }
-
                 if (dayFilter === "checkout-today") {
-                  // Only show Checked-In guests whose checkout is today OR overdue (past)
                   if (b.bookingStatus !== "Checked-In") return false
                   const coDate = new Date(b.checkOutDateTime); coDate.setHours(0,0,0,0)
                   if (coDate > todayMidnight) return false
                 }
-
                 const ms = bFilter==="All" || b.bookingStatus===bFilter
                 const ref=(b._id?.toString().slice(-8)||"").toUpperCase(), sq=search.toUpperCase()
                 const hallDates=b.paymentDetails?.hallDates||[]
@@ -1271,7 +1292,7 @@ export default function RoomBooking() {
                   <span className="font-display text-lg font-bold text-gold">#{room.room_number}</span>
                   <Badge label={room.status} variant={room.status} size="sm"/>
                 </div>
-                <p className="text-resort-dim text-xs">{room.roomType?.type_name||"—"} · Fl.{room.floor}</p>
+                <p className="resort-dim text-xs">{room.roomType?.type_name||"—"} · Fl.{room.floor}</p>
               </div>
             )
           })}
@@ -1552,15 +1573,104 @@ export default function RoomBooking() {
           {step===4&&(
             <div className="space-y-4">
               <SectionLabel text="Payment"/>
+
+              {/* ── Total amount banner ── */}
               <div style={{padding:"14px 16px",borderRadius:10,background:"rgba(201,168,76,.06)",border:"1px solid rgba(201,168,76,.2)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
                   <span style={{fontSize:12,color:"#8A7E6A"}}>
-                    {form.bookingType==="room"?`${nights} night${nights!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`:`${form.hallDates.length} day${form.hallDates.length!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`}
+                    {form.bookingType==="room"
+                      ?`${nights} night${nights!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`
+                      :`${form.hallDates.length} day${form.hallDates.length!==1?"s":""} × ${fmtINR(selectedType?.price_per_night)}`}
                   </span>
                   <span style={{fontSize:20,fontWeight:800,color:"#C9A84C"}}>{fmtINR(totalAmount)}</span>
                 </div>
-                <p style={{fontSize:11,color:"#6B6054",marginTop:4}}>Full payment collected now (admin booking)</p>
               </div>
+
+              {/* ── Payment Split Selector ── */}
+              <div>
+                <p style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:10}}>
+                  How much to collect now? *
+                </p>
+                <div className="rb-split-grid">
+                  {PAYMENT_SPLITS.map(opt => {
+                    const amt = opt.id === "half" ? Math.ceil(totalAmount / 2) : totalAmount
+                    const isSelected = form.splitChoice === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => { set({splitChoice: opt.id}); if(errors.splitChoice) setErrors(er=>({...er,splitChoice:""})) }}
+                        className={`rb-split-card ${isSelected ? "selected" : ""}`}
+                      >
+                        {/* Badge */}
+                        <span style={{
+                          display:"inline-flex", alignItems:"center", gap:4,
+                          padding:"2px 8px", borderRadius:20, fontSize:10, fontWeight:700,
+                          color: opt.badgeColor, background: opt.badgeBg,
+                          border:`1px solid ${opt.badgeColor}40`,
+                          marginBottom:8,
+                        }}>
+                          {opt.badge}
+                        </span>
+
+                        {/* Amount */}
+                        <div style={{marginBottom:4}}>
+                          <span style={{
+                            fontFamily:"Georgia,serif", fontWeight:800, fontSize:20,
+                            color: isSelected ? "#C9A84C" : "#e8dcc8",
+                          }}>
+                            {fmtINR(amt)}
+                          </span>
+                        </div>
+
+                        {/* Label */}
+                        <p style={{fontSize:12, fontWeight:700, color: isSelected?"#C9A84C":"rgba(255,255,255,.6)", marginBottom:2}}>
+                          {opt.label}
+                        </p>
+                        <p style={{fontSize:10, color:"rgba(255,255,255,.3)"}}>
+                          {opt.sublabel}
+                        </p>
+
+                        {/* Selected tick */}
+                        {isSelected && (
+                          <div style={{
+                            position:"absolute", top:10, right:10,
+                            width:16, height:16, borderRadius:"50%",
+                            background:"#C9A84C",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                          }}>
+                            <svg width={8} height={8} viewBox="0 0 8 8" fill="none">
+                              <polyline points="1,4 3,6 7,2" stroke="#0E0C09" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+                <FieldError msg={errors.splitChoice}/>
+
+                {/* Split description + charging now line */}
+                {form.splitChoice && (
+                  <div style={{padding:"10px 14px",borderRadius:8,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.07)",marginBottom:4}}>
+                    <p style={{fontSize:11,color:"rgba(255,255,255,.4)",margin:"0 0 6px"}}>
+                      {PAYMENT_SPLITS.find(o=>o.id===form.splitChoice)?.description}
+                    </p>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontSize:12,color:"#8A7E6A"}}>Collecting now</span>
+                      <span style={{fontSize:16,fontWeight:800,color:"#C9A84C"}}>{fmtINR(amountNow)}</span>
+                    </div>
+                    {form.splitChoice==="half" && (
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}}>
+                        <span style={{fontSize:11,color:"#6B6054"}}>Due at check-in</span>
+                        <span style={{fontSize:13,color:"#E0A852",fontWeight:600}}>{fmtINR(totalAmount - amountNow)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Payment Method ── */}
               <div>
                 <p style={{fontSize:10,color:"#6B6054",fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Payment Method *</p>
                 <div className="rb-pm-grid">
@@ -1574,7 +1684,7 @@ export default function RoomBooking() {
                         <Icon size={22} color={form.paymentMethod===m.value?"#C9A84C":"#6B6054"}/>
                         <div style={{ minWidth:0 }}>
                           <p style={{fontSize:13,fontWeight:700,color:form.paymentMethod===m.value?"#C9A84C":"#C8BAA0",marginBottom:2}}>{m.label}</p>
-                          <p style={{fontSize:11,color:"#6B6054",display:"none"}}>{m.desc}</p>
+                          <p style={{fontSize:10,color:"#6B6054"}}>{m.desc}</p>
                         </div>
                       </button>
                     )
@@ -1582,9 +1692,13 @@ export default function RoomBooking() {
                 </div>
                 <FieldError msg={errors.paymentMethod}/>
               </div>
+
               {form.paymentMethod==="cash"&&(
                 <div style={{padding:"10px 14px",borderRadius:8,background:"rgba(82,192,122,.08)",border:"1px solid rgba(82,192,122,.2)"}}>
-                  <p style={{fontSize:12,color:"#52C07A",display:"flex",alignItems:"center",gap:5}}><RightTickIcon size={13} color="#52C07A"/> Cash of {fmtINR(totalAmount)} received at front desk.</p>
+                  <p style={{fontSize:12,color:"#52C07A",display:"flex",alignItems:"center",gap:5}}>
+                    <RightTickIcon size={13} color="#52C07A"/> Collect {fmtINR(amountNow)} cash at front desk.
+                    {form.splitChoice==="half" && <span style={{color:"#E0A852",marginLeft:4}}>({fmtINR(totalAmount - amountNow)} due at check-in)</span>}
+                  </p>
                 </div>
               )}
               {form.paymentMethod==="upi"&&(
@@ -1628,7 +1742,8 @@ export default function RoomBooking() {
                   </div>
                 </div>
               )}
-              {/* Booking summary */}
+
+              {/* ── Booking summary ── */}
               <div style={{padding:"14px 16px",borderRadius:10,background:"rgba(255,255,255,.02)",border:"1px solid rgba(255,255,255,.07)"}}>
                 <p style={{fontSize:11,fontWeight:700,color:"#C8BAA0",marginBottom:10}}>Booking Summary</p>
                 {[
@@ -1640,11 +1755,13 @@ export default function RoomBooking() {
                     :[["Days",`${form.hallDates.length}`],["Dates",form.hallDates.map(d=>fmtDate(d+"T00:00:00")).join(", ")]]),
                   ["Guests",  `${form.adults} adult${form.adults!==1?"s":""}, ${form.children} child${form.children!==1?"ren":""}`],
                   ["Payment", PAYMENT_METHODS.find(m=>m.value===form.paymentMethod)?.label||"—"],
+                  ["Split",   form.splitChoice==="half"?"50% now, 50% at check-in":"100% now"],
+                  ["Collecting Now", fmtINR(amountNow)],
                   ["Total",   fmtINR(totalAmount)],
                 ].map(([l,v])=>(
                   <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,.04)",gap:8}}>
                     <span style={{fontSize:11,color:"#6B6054",flexShrink:0}}>{l}</span>
-                    <span style={{fontSize:11,fontWeight:600,color:"#F5ECD7",maxWidth:"60%",textAlign:"right",wordBreak:"break-word"}}>{v}</span>
+                    <span style={{fontSize:11,fontWeight:600,color:l==="Collecting Now"?"#C9A84C":l==="Total"?"#52C07A":"#F5ECD7",maxWidth:"60%",textAlign:"right",wordBreak:"break-word"}}>{v}</span>
                   </div>
                 ))}
               </div>
