@@ -30,7 +30,7 @@ export default function Reports() {
   const [staff,     setStaff]     = useState([])
   const [customers, setCustomers] = useState([])
   const [loading,   setLoading]   = useState(true)
-  const [period,    setPeriod]    = useState("all") // all | month | week
+  const [period,    setPeriod]    = useState("all") // all | month | week | today
 
   const load = useCallback(async () => {
     const [b, r, s, c] = await Promise.allSettled([getAllBookings(), getRooms(), getStaffList(), getCustomers()])
@@ -46,8 +46,13 @@ export default function Reports() {
   // Filter bookings by period
   const now  = new Date()
   const filtered = bookings.filter(b => {
-    if (period === "all") return true
+    if (period === "all")   return true
     const d = new Date(b.createdAt)
+    if (period === "today") {
+      return d.getDate()     === now.getDate() &&
+             d.getMonth()    === now.getMonth() &&
+             d.getFullYear() === now.getFullYear()
+    }
     if (period === "month") return (now - d) < 30 * 86400000
     if (period === "week")  return (now - d) < 7  * 86400000
     return true
@@ -55,7 +60,7 @@ export default function Reports() {
 
   const active  = filtered.filter(b => b.bookingStatus !== "Cancelled")
   const revenue = active.reduce((s, b) => s + (b.amountPaid || 0), 0)
-  const pending = filtered.filter(b => b.paymentStatus === "Pending" && b.bookingStatus !== "Cancelled")
+  const pending = filtered.filter(b => b.bookingStatus !== "Cancelled")
                          .reduce((s, b) => s + (b.amountDue || 0), 0)
 
   // Revenue by room type
@@ -67,11 +72,12 @@ export default function Reports() {
   const byTypeArr = Object.entries(byType).sort((a, b) => b[1] - a[1])
   const maxType   = byTypeArr[0]?.[1] || 1
 
-  // Bookings per month (last 6)
+  // Bookings per month (last 6) — uses `filtered` so period filter applies
+  // For "today" period we still show last 6 months for context but count only today's bookings per month
   const months = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
-    const label = d.toLocaleString("en-IN", { month: "short", year: "2-digit" })
-    const count = bookings.filter(b => {
+    const d     = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+    const label = d.toLocaleString("en-IN", { month: "short" }) // ← just "Nov", "Dec" etc.
+    const count = filtered.filter(b => {
       const bd = new Date(b.createdAt)
       return bd.getMonth() === d.getMonth() && bd.getFullYear() === d.getFullYear()
     }).length
@@ -104,8 +110,14 @@ export default function Reports() {
           <h1 className="page-title">Reports</h1>
           <p className="page-sub">Business analytics and performance insights</p>
         </div>
+        {/* ── Period filter — added "Today" ── */}
         <div className="flex gap-2">
-          {[["all","All Time"],["month","This Month"],["week","This Week"]].map(([v, l]) => (
+          {[
+            ["all",   "All Time"],
+            ["today", "Today"],
+            ["week",  "This Week"],
+            ["month", "This Month"],
+          ].map(([v, l]) => (
             <button key={v} onClick={() => setPeriod(v)}
               className="px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
               style={{
@@ -125,13 +137,13 @@ export default function Reports() {
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label:"Total Revenue",     value: fmt(revenue),          color:"#C9A84C",
+            { label:"Total Revenue",      value: fmt(revenue),          color:"#C9A84C",
               Icon: ()=><RupeeIcon size={28} color="#c9a84c"/> },
-              { label:"Pending Collection",value: fmt(pending),          color:"#f5a623",
+            { label:"Pending Collection", value: fmt(pending),          color:"#f5a623",
               Icon: ()=><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> },
-            { label:"Total Bookings",    value: filtered.length,       color:"#5b9cf6",
+            { label:"Total Bookings",     value: filtered.length,       color:"#5b9cf6",
               Icon: ()=><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> },
-            { label:"Room Occupancy",    value: fmtPct(occupancyRate), color:"#52C07A",
+            { label:"Room Occupancy",     value: fmtPct(occupancyRate), color:"#52C07A",
               Icon: ()=><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 22V8l9-6 9 6v14"/><path d="M9 22V12h6v10"/><path d="M3 8h18"/></svg> },
           ].map(k => (
             <div key={k.label} className="card-p flex items-center gap-4 anim-up">
@@ -165,7 +177,7 @@ export default function Reports() {
           )}
         </div>
 
-        {/* Bookings per Month */}
+        {/* Bookings per Month — label fixed to short month name only */}
         <div className="card-p anim-up" style={{ animationDelay: "60ms" }}>
           <h3 className="font-display text-base font-semibold text-cream mb-1">Monthly Bookings</h3>
           <p className="text-resort-muted text-xs mb-5">Last 6 months</p>
@@ -216,10 +228,10 @@ export default function Reports() {
         {loading ? <div className="h-16 skeleton rounded-xl" /> : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label:"Booked",        color:"#5b9cf6" },
-              { label:"Checked-In",    color:"#52C07A" },
-              { label:"Checked-Out",   color:"#9CA3AF" },
-              { label:"Cancelled",     color:"#e05c5c" },
+              { label:"Booked",      color:"#5b9cf6" },
+              { label:"Checked-In",  color:"#52C07A" },
+              { label:"Checked-Out", color:"#9CA3AF" },
+              { label:"Cancelled",   color:"#e05c5c" },
             ].map(s => {
               const count = filtered.filter(b => b.bookingStatus === s.label).length
               const pct   = filtered.length > 0 ? (count / filtered.length) * 100 : 0
