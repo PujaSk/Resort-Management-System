@@ -31,6 +31,18 @@ const PAYMENT_LABEL = {
   checkin:     "🏨 Pay at Check-in",
 }
 
+// Quick-pick preset ranges
+const PRESETS = [
+  { label: "Today",      getDates: () => { const d = new Date(); return [d, d] } },
+  { label: "This Week",  getDates: () => { const now = new Date(); const start = new Date(now); start.setDate(now.getDate() - now.getDay()); return [start, now] } },
+  { label: "This Month", getDates: () => { const now = new Date(); return [new Date(now.getFullYear(), now.getMonth(), 1), now] } },
+  { label: "Last Month", getDates: () => { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth() - 1, 1); const end = new Date(now.getFullYear(), now.getMonth(), 0); return [start, end] } },
+]
+
+const toInputVal = d => d ? d.toISOString().slice(0, 10) : ""
+const startOfDay = d => { const x = new Date(d); x.setHours(0,0,0,0); return x }
+const endOfDay   = d => { const x = new Date(d); x.setHours(23,59,59,999); return x }
+
 export default function Transaction() {
   const [bookings,     setBookings]     = useState([])
   const [loading,      setLoading]      = useState(true)
@@ -38,6 +50,9 @@ export default function Transaction() {
   const [statusFilter, setStatusFilter] = useState("All")
   const [payFilter,    setPayFilter]    = useState("All")
   const [selected,     setSelected]     = useState(null)
+  const [dateFrom,     setDateFrom]     = useState("")   // "YYYY-MM-DD" string
+  const [dateTo,       setDateTo]       = useState("")   // "YYYY-MM-DD" string
+  const [activePreset, setActivePreset] = useState(null) // label of active preset
   const { toast, show } = useToast()
 
   const load = useCallback(async () => {
@@ -51,12 +66,42 @@ export default function Transaction() {
 
   useEffect(() => { load() }, [load])
 
-  const totalRevenue = bookings.filter(b => b.bookingStatus !== "Cancelled").reduce((s, b) => s + (b.amountPaid || 0), 0)
-  const pendingDue   = bookings.reduce((s, b) => s + (b.amountDue || 0), 0)
-  const paidCount    = bookings.filter(b => b.paymentStatus === "Paid").length
-  const partialCount = bookings.filter(b => b.paymentStatus === "Partially Paid").length
+  // Apply a preset
+  const applyPreset = (preset) => {
+    const [start, end] = preset.getDates()
+    setDateFrom(toInputVal(start))
+    setDateTo(toInputVal(end))
+    setActivePreset(preset.label)
+  }
 
-  const filtered = bookings.filter(b => {
+  // Clear date filters
+  const clearDates = () => {
+    setDateFrom("")
+    setDateTo("")
+    setActivePreset(null)
+  }
+
+  // When user manually changes dates, deactivate preset
+  const handleDateFrom = (val) => { setDateFrom(val); setActivePreset(null) }
+  const handleDateTo   = (val) => { setDateTo(val);   setActivePreset(null) }
+
+  // Date-filtered bookings (based on createdAt)
+  const dateFiltered = bookings.filter(b => {
+    if (!dateFrom && !dateTo) return true
+    const created = new Date(b.createdAt)
+    if (dateFrom && created < startOfDay(new Date(dateFrom))) return false
+    if (dateTo   && created > endOfDay(new Date(dateTo)))     return false
+    return true
+  })
+
+  // KPI cards use date-filtered bookings
+  const totalRevenue = dateFiltered.filter(b => b.bookingStatus !== "Cancelled").reduce((s, b) => s + (b.amountPaid || 0), 0)
+  const pendingDue   = dateFiltered.filter(b => b.bookingStatus !== "Cancelled").reduce((s, b) => s + (b.amountDue || 0), 0)
+  const paidCount    = dateFiltered.filter(b => b.paymentStatus === "Paid").length
+  const partialCount = dateFiltered.filter(b => b.paymentStatus === "Partially Paid").length
+
+  // Full filter (date + search + status + payment)
+  const filtered = dateFiltered.filter(b => {
     const ms   = statusFilter === "All" || b.bookingStatus === statusFilter
     const mp   = payFilter    === "All" || b.paymentStatus === payFilter
     const name = b.customer?.name || ""
@@ -66,6 +111,8 @@ export default function Transaction() {
                  (b._id || "").includes(search)
     return ms && mp && mq
   })
+
+  const hasDateFilter = dateFrom || dateTo
 
   if (loading) return <Loader text="Loading transactions…" />
 
@@ -80,7 +127,7 @@ export default function Transaction() {
         </div>
       </div>
 
-      {/* KPI — index.css handles grid-cols-2 lg:grid-cols-4 responsiveness */}
+      {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 anim-up d1">
         {[
           { label: "Total Collected", value: fmtINR(totalRevenue), color: "#52C07A",
@@ -108,7 +155,101 @@ export default function Transaction() {
         ))}
       </div>
 
-      {/* Filters */}
+      {/* ── Date Filter Row ── */}
+      <div className="card-p anim-up d2 mb-4" style={{ padding: "14px 16px" }}>
+        <div className="flex flex-wrap items-center gap-3">
+
+          {/* Calendar icon + label */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#C9A84C", textTransform: "uppercase", letterSpacing: "0.08em" }}>Date Range</span>
+          </div>
+
+          {/* Preset chips */}
+          <div className="flex gap-2 flex-wrap">
+            {PRESETS.map(p => (
+              <button
+                key={p.label}
+                onClick={() => applyPreset(p)}
+                style={{
+                  fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 6, cursor: "pointer",
+                  transition: "all .15s",
+                  background: activePreset === p.label ? "rgba(201,168,76,.18)" : "rgba(255,255,255,.04)",
+                  border: `1px solid ${activePreset === p.label ? "rgba(201,168,76,.45)" : "rgba(255,255,255,.08)"}`,
+                  color: activePreset === p.label ? "#C9A84C" : "#888",
+                }}
+              >{p.label}</button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,.08)", flexShrink: 0 }} />
+
+          {/* From date */}
+          <div className="flex items-center gap-2">
+            <span style={{ fontSize: 11, color: "#6B6054", whiteSpace: "nowrap" }}>From</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => handleDateFrom(e.target.value)}
+              max={dateTo || undefined}
+              style={{
+                fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer",
+                background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
+                color: dateFrom ? "#F5ECD7" : "#6B6054", outline: "none",
+                colorScheme: "dark",
+              }}
+            />
+          </div>
+
+          {/* Arrow */}
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#6B6054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+
+          {/* To date */}
+          <div className="flex items-center gap-2">
+            <span style={{ fontSize: 11, color: "#6B6054", whiteSpace: "nowrap" }}>To</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => handleDateTo(e.target.value)}
+              min={dateFrom || undefined}
+              style={{
+                fontSize: 12, padding: "5px 10px", borderRadius: 7, cursor: "pointer",
+                background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
+                color: dateTo ? "#F5ECD7" : "#6B6054", outline: "none",
+                colorScheme: "dark",
+              }}
+            />
+          </div>
+
+          {/* Clear button — only shown when a date filter is active */}
+          {hasDateFilter && (
+            <button
+              onClick={clearDates}
+              style={{
+                fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 6, cursor: "pointer",
+                background: "rgba(224,82,82,.1)", border: "1px solid rgba(224,82,82,.25)", color: "#E05252",
+              }}
+            >✕ Clear</button>
+          )}
+
+          {/* Result count badge when filtered */}
+          {hasDateFilter && (
+            <span style={{
+              marginLeft: "auto", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20,
+              background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C",
+            }}>
+              {dateFiltered.length} bookings in range
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Search + Status + Payment filters */}
       <div className="flex flex-wrap gap-3 mb-5 anim-up d2">
         <input
           placeholder="Search guest, room, booking ID…"
@@ -230,8 +371,6 @@ export default function Transaction() {
                 </div>
               </div>
 
-              {/* FIX: was "grid grid-cols-2 gap-2" — Tailwind JIT unreliable inside modals.
-                  form-grid-2 from index.css: 1-col on mobile → 2-col at 640px */}
               <div className="form-grid-2">
                 {[
                   ["Room",           b.room ? `#${b.room.room_number}` : "—"],
